@@ -15,7 +15,7 @@ from beaker import client, sandbox, testing
 from beaker.client.application_client import ApplicationClient
 from beaker.sandbox import get_algod_client, get_accounts
 from beaker.client.logic_error import LogicException
-from .auction import Auction
+from auction import Auction
 
 accts = get_accounts()
 client = get_algod_client()
@@ -28,7 +28,7 @@ def creator_acct() -> tuple[str, str, AccountTransactionSigner]:
 
 @pytest.fixture(scope="session")
 def user_acct() -> tuple[str, str, AccountTransactionSigner]:
-    return accts[1].address, accts[1].private_key, accts[1].signer          #for loop for many users?
+    return accts[1].address, accts[1].private_key, accts[1].signer                      #for loop for many users?   <<<---
 
 
 @pytest.fixture(scope="session")
