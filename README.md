@@ -18,7 +18,7 @@ The seller may:
 ### Auction participants
 
 1. the auction is accessible to anyone in the network: there is no control on the accounts that send bids to the smart contract.
-2. only some accounts, selected by the seller, can take part to the auction. The seller **S** sends off-chain to each users **U** (who wants to allow to participate to the auction) the `authorisation data` which consists of: the signature with its secret key of the address `add<sub>u</sub>` of the user and the identifier `id` of the auction: `( sk_s, add<sub_u||id , sig(sk_s, add_u||id) )`. 
+2. only some accounts, selected by the seller, can take part to the auction. The seller **S** sends off-chain to each users **U** (who wants to allow to participate to the auction) the `authorisation data` which consists of: the signature with its secret key of the address `add_u` of the user and the identifier `id` of the auction: `( sk_s, add_u||id , sig(sk_s, add_u||id) )`. 
     
     The user authorised to participate can send a bid to the smart contract giving as input (at least) the amount of money willing to spend (either committed or not) together with the authorisation data received by the seller off-chain. The smart contract will accept its bid only if the signature of the user account concatenated to the auction id verifies using the public key of the seller.
  
@@ -26,7 +26,7 @@ The seller may:
 ### Number of bids
 
 1. every account can make a single bid during the auction process;
-2. every account can make a number of bids equal to the number of \texttt{auction token} in their possess.
+2. every account can make a number of bids equal to the number of auction token in their possess.
 
 
 ## Bridge between Algorand and Ethereum
@@ -63,7 +63,7 @@ The workflow is the following:
 - all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret `h_p(s_p)` which will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain;
 - the smart contract **SC<sub>A</sub>** eventually closes the bidding phase and announces the winner;
 - the oracle **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w)` of the winner `w`.
-- the winner `w` discloses its secret `s<sub>w</sub>` (which is bounded to its Ethereum public key via the function `h<sub>w</sub>` that it previously used) and becomes the owner of the asset.
+- the winner `w` discloses its secret `s_w` (which is bounded to its Ethereum public key via the function `h_w` that it previously used) and becomes the owner of the asset.
 - the seller uses the secret  `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain.
 
 ## Development Environment
