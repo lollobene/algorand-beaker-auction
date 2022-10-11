@@ -37,7 +37,7 @@ def main():
 	sp = client.suggested_params()
 
 	# Preparo una nuova transazione dal secondo account per inserire una nuova puntata
-
+	sp.fee=10
 	tx3=TransactionWithSigner(
 		txn=transaction.PaymentTxn(acct3.address, sp, APP_ADDRESS, 3 * consts.algo),
 		signer=acct3.signer,
