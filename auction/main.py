@@ -45,13 +45,20 @@ def demo():
 
     # Fund the app account with 1 algo                      #CARICA ALGO SULLO SMART CONTRACT, ANCHE SE DOPO FATTO IN "start_auction"?  <<<---
 #   app_client.fund(1*consts.algo)
+    
+    sp = client.suggested_params()
 
     # Start auction by the governor
+    tx=TransactionWithSigner(
+        txn=transaction.PaymentTxn(addr1, sp, app_addr, 100*consts.milli_algo),
+        signer=signer1,
+    )
     try:
         result = app_client.call(
             Auction.start_auction,
+            payment = tx,
             starting_price = 1*consts.algo,
-            duration = 30
+            duration = 60
         )
 
     except LogicException as e:
@@ -116,11 +123,12 @@ def demo():
 
 
     # End auction
-    time.sleep(30)
+    time.sleep(10)
 
     try:
         result = app_client.call(
             Auction.end_auction,
+            suggested_params=sp
         )
 
     except LogicException as e:
