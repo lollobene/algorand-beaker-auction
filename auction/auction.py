@@ -90,8 +90,12 @@ class Auction(Application):
 #            self.highest_bid.set(starting_price.get()),
 ##            self.highest_bidder.set(payment.sender())
 #        )
-    def start_auction(self, starting_price: abi.Uint64, duration: abi.Uint64):
+    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, duration: abi.Uint64):
+        payment = payment.get()
+        
         return Seq(
+            Assert(payment.receiver() == Global.current_application_address()),
+            Assert(payment.amount() == Int(100000)),
             # Set global state
             self.auction_end.set(Global.latest_timestamp() + duration.get()),
             self.highest_bid.set(starting_price.get()),

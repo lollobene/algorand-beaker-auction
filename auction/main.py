@@ -51,15 +51,22 @@ def demo():
     app_id, app_addr, txid = app_client.create()
     print(f"Created App with id: {app_id} and address: {app_addr} in tx: {txid}\n")
 
-    # Fund the app account with 1 algo
-#    app_client.fund(1*consts.algo)                          #addr1 is funding the app                           <<<---
-
-
     # Start auction by the governor
     print("STARTING AUCTION BY THE GOVERNOR...")
+    # Fund the app account with 1 algo                      #CARICA ALGO SULLO SMART CONTRACT, ANCHE SE DOPO FATTO IN "start_auction"?  <<<---
+#   app_client.fund(1*consts.algo)
+    
+    sp = client.suggested_params()
+
+    # Start auction by the governor
+    tx=TransactionWithSigner(
+        txn=transaction.PaymentTxn(addr1, sp, app_addr, 100*consts.milli_algo),
+        signer=signer1,
+    )
     try:
         result = app_client.call(
             Auction.start_auction,
+            payment = tx,
             starting_price = 1*consts.algo,
             duration = 60
         )
@@ -68,7 +75,7 @@ def demo():
         print(f"\n{e}\n")
     
     print(f"Current app state: {app_client.get_application_state()}\n")
-    assert (app_client.get_application_state[Auction.governor.str_key()] == decode_address(app_client.get_sender).hex())
+#    assert (app_client.get_application_state[Auction.governor.str_key()] == decode_address(app_client.get_sender).hex())
     print_balances(app_addr, addr1, addr2, addr3)
 
 
@@ -133,6 +140,7 @@ def demo():
     try:
         result = app_client.call(
             Auction.end_auction,
+            suggested_params=sp
         )
 
     except LogicException as e:
