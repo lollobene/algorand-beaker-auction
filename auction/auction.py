@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from typing import Final
-from beaker.client import ApplicationClient, LogicException
-from beaker.sandbox import get_algod_client, get_accounts
+#from beaker.client import ApplicationClient, LogicException
+#from beaker.sandbox import get_algod_client, get_accounts
 from beaker import *
 from pyteal import *
 import os
 import json
-from algosdk.future import transaction
-from algosdk.atomic_transaction_composer import (TransactionWithSigner)
+#from algosdk.future import transaction
+#from algosdk.atomic_transaction_composer import (TransactionWithSigner)
 
 class Auction(Application):
 
@@ -70,13 +70,16 @@ class Auction(Application):
         """sets the governor of the contract, may only be called by the current governor"""
         return self.governor.set(new_governor.address())
 
+#     @close_out
+#    def close_out(self):
+#        return Approve()
+
+#    @delete(authorize=Authorize.only(governor))
+#    def delete(self):
+#        return Approve()
+
     @external(authorize=Authorize.only(governor))
-    def start_auction(
-        self,
-        payment: abi.PaymentTransaction,
-        starting_price: abi.Uint64,
-        length: abi.Uint64,
-    ):
+    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, length: abi.Uint64):
         payment = payment.get()
 
         return Seq(
@@ -86,6 +89,7 @@ class Auction(Application):
             # Set global state
             self.auction_end.set(Global.latest_timestamp() + length.get()),
             self.highest_bid.set(starting_price.get()),
+#            self.highest_bidder.set(payment.sender())
         )
 
     @internal(TealType.none)
@@ -107,7 +111,7 @@ class Auction(Application):
     def end_auction(self):
         auction_end = self.auction_end.get()
         highest_bid = self.highest_bid.get()
-        owner = self.governor.get()
+        owner = self.governor.get()                                             # <<<----
         highest_bidder = self.highest_bidder.get()
 
         return Seq(
@@ -115,7 +119,7 @@ class Auction(Application):
             self.pay(owner, highest_bid),
             # Set global state
             self.auction_end.set(Int(0)),
-            self.governor.set(highest_bidder),
+            self.governor.set(highest_bidder),                                  # <<<---- COSI NON CAMBIA DI VOLTA IN VOLTA IL GOVERNOR CHE ACQUISISCE DIRITTI RISTRETTI (governor = highest_bidder)
             self.highest_bidder.set(Bytes("")),
         )
 
