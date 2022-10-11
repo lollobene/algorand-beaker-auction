@@ -10,26 +10,24 @@ from algosdk.atomic_transaction_composer import (
 
 from auction import Auction
 
-APP_ID = 62
-APP_ADDRESS = "NDBRJYD5KXUA6K5Q456OM6JLC5SRKQJ7ME6MK2NCE5VX3WGGEAB5LOYFVQ"
-TX_ID = "R726ZBMRWKU7DBURD2KGYC4VP7YG7C4UCH3VTJXCDCI32UDTVB4A"
+APP_ID = 147
+APP_ADDRESS = "GBOCGMWXDET4ZN6YAZBMEP3RCSNQRPHZHV7SQ3DGJRDRXUK35XFEHTHXWA"
+TX_ID = "XNE3XGMPKLMY2FHMLTTPCSEESUAXPERQ4DK64N7EARBHJM3BWKHA"
 
 def main():
 
 	accts = get_accounts()
 
 	acct1 = accts.pop()
-	acct2 = accts.pop()
-	acct3 = accts.pop()
 
 	client = get_algod_client()
 
 	app = Auction()
 
-	app_client = ApplicationClient(client, app, app_id=APP_ID, signer=acct3.signer)
+	app_client = ApplicationClient(client, app, app_id=APP_ID, signer=acct1.signer)
 
 	print(
-		f"ITERACTING: App ID: {APP_ID} Address: {APP_ADDRESS} Transaction ID: {TX_ID}"
+		f"Ending Auction: App ID: {APP_ID} Address: {APP_ADDRESS} Transaction ID: {TX_ID}"
 	)
 
 	print(f"Current app state: {app_client.get_application_state()}")
@@ -37,17 +35,11 @@ def main():
 	sp = client.suggested_params()
 
 	# Preparo una nuova transazione dal secondo account per inserire una nuova puntata
-	sp.fee=10
-	tx3=TransactionWithSigner(
-		txn=transaction.PaymentTxn(acct3.address, sp, APP_ADDRESS, 3 * consts.algo),
-		signer=acct3.signer,
-	)
+	sp.fee=100
 
 	try:
 		result = app_client.call(
-			app.bid,
-			payment=tx3,
-			previous_bidder=acct2.address
+			app.end_auction,
 		)
 
 	except LogicException as e:
