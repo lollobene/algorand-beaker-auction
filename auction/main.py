@@ -33,7 +33,7 @@ print("Address Secret key =", sk3)
 client = get_algod_client()
 
 # Create an Application client containing both an algod client and my app
-app_client = ApplicationClient(client, Auction(), signer=acct1.signer)
+app_client = ApplicationClient(client, Auction(), signer=signer1)
 
 
 def demo():
@@ -41,30 +41,16 @@ def demo():
     # Create the applicatiion on chain, set the app id for the app client
     app_id, app_addr, txid = app_client.create()
     print(f"\nCreated App with id: {app_id} and address: {app_addr} in tx: {txid}\n")
-    print(f"Current app state: {app_client.get_application_state()}\n")
-    print(Global.creator_address(),"?????\n")                                           #DIVERSO DAL PRIMO DEGLI ACCOUNT SANDBOX?       <<<---
-    print_balances(app_addr, addr1, addr2, addr3)
-
-    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok      # CHECK suggested parameters                    <<<---
-    sp = client.suggested_params()
-    #sp.flat_fee = True
-    #sp.fee = 3*consts.milli_algo
 
     # Fund the app account with 1 algo                      #CARICA ALGO SULLO SMART CONTRACT, ANCHE SE DOPO FATTO IN "start_auction"?  <<<---
 #   app_client.fund(1*consts.algo)
 
-    # Preparing transaction
-    tx1 = TransactionWithSigner(
-                txn=transaction.PaymentTxn(addr1, sp, app_addr, 1*consts.algo), signer=signer1
-            )
-
-    # Sending funds to the smart contract to start auction
+    # Start auction by the governor
     try:
         result = app_client.call(
             Auction.start_auction,
-            payment=tx1,
-            starting_price=1*consts.algo,
-            length=1000000
+            starting_price = 1*consts.algo,
+            duration = 5*60
         )
 
     except LogicException as e:
@@ -74,24 +60,56 @@ def demo():
     print_balances(app_addr, addr1, addr2, addr3)
 
 
-    # 1st user bidding
+    # Start bidding - 1st user
+
+    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok      # CHECK suggested parameters                    <<<---
+    sp = client.suggested_params()
+    #sp.flat_fee = True
+    #sp.fee = 3*consts.milli_algo
+
     # Preparing transaction
-#    tx2 = TransactionWithSigner(
-#        txn=transaction.PaymentTxn(addr2, sp, app_addr, 2*consts.algo), signer=signer2
-#    )
+    bidder_client = app_client.prepare(signer2)
 
-#    try:
-#        result = app_client.call(
-#            Auction.bid,
-#            payment=tx2,
-#            previous_bidder=addr1,
-#        )
+    tx1 = TransactionWithSigner(
+                txn=transaction.PaymentTxn(addr2, sp, app_addr, 2*consts.algo), signer=signer2
+            )
+    try:
+        result = bidder_client.call(
+            Auction.bid,
+            payment=tx1,
+        )
 
-#    except LogicException as e:
-#        print(f"\n{e}\n")
+    except LogicException as e:
+        print(f"\n{e}\n")
 
-#    print(f"Current app state: {app_client.get_application_state()}\n")
-#    print_balances(app_addr, addr1, addr2, addr3)
+    print(f"Current app state: {app_client.get_application_state()}\n")
+    print_balances(app_addr, addr1, addr2, addr3)
+
+
+    # Start bidding - 2nd user
+
+    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok      # CHECK suggested parameters                    <<<---
+    sp = client.suggested_params()
+    #sp.flat_fee = True
+    #sp.fee = 3*consts.milli_algo
+
+    # Preparing transaction
+    bidder_client_2 = app_client.prepare(signer3)
+
+    tx2 = TransactionWithSigner(
+                txn=transaction.PaymentTxn(addr3, sp, app_addr, 3*consts.algo), signer=signer3
+            )
+    try:
+        result = bidder_client_2.call(
+            Auction.bid,
+            payment=tx2,
+        )
+
+    except LogicException as e:
+        print(f"\n{e}\n")
+
+    print(f"Current app state: {app_client.get_application_state()}\n")
+    print_balances(app_addr, addr1, addr2, addr3)
 
 
     ##############################################################

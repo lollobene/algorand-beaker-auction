@@ -79,17 +79,23 @@ class Auction(Application):
 #        return Approve()
 
     @external(authorize=Authorize.only(governor))
-    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, length: abi.Uint64):
-        payment = payment.get()
-
+#    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, length: abi.Uint64):
+#        payment = payment.get()
+#        return Seq(
+#            # Verify payment txn
+#            Assert(payment.receiver() == Global.current_application_address()),
+#            Assert(payment.amount() == Int(1000000)),
+#            # Set global state
+#            self.auction_end.set(Global.latest_timestamp() + length.get()),
+#            self.highest_bid.set(starting_price.get()),
+##            self.highest_bidder.set(payment.sender())
+#        )
+    def start_auction(self, starting_price: abi.Uint64, duration: abi.Uint64):
         return Seq(
-            # Verify payment txn
-            Assert(payment.receiver() == Global.current_application_address()),
-            Assert(payment.amount() == Int(1000000)),
             # Set global state
-            self.auction_end.set(Global.latest_timestamp() + length.get()),
+            self.auction_end.set(Global.latest_timestamp() + duration.get()),
             self.highest_bid.set(starting_price.get()),
-#            self.highest_bidder.set(payment.sender())
+            self.highest_bidder.set(Bytes(""))
         )
 
     @internal(TealType.none)
@@ -107,27 +113,26 @@ class Auction(Application):
             InnerTxnBuilder.Submit(),
         )
 
-    @external
-    def end_auction(self):
-        auction_end = self.auction_end.get()
-        highest_bid = self.highest_bid.get()
-        owner = self.governor.get()                                             # <<<----
-        highest_bidder = self.highest_bidder.get()
-
-        return Seq(
-            Assert(Global.latest_timestamp() > auction_end),
-            self.pay(owner, highest_bid),
-            # Set global state
-            self.auction_end.set(Int(0)),
-            self.governor.set(highest_bidder),                                  # <<<---- COSI NON CAMBIA DI VOLTA IN VOLTA IL GOVERNOR CHE ACQUISISCE DIRITTI RISTRETTI (governor = highest_bidder)
-            self.highest_bidder.set(Bytes("")),
-        )
+#    @external
+#    def end_auction(self):
+#        auction_end = self.auction_end.get()
+#        highest_bid = self.highest_bid.get()
+#        owner = self.governor.get()                                             # <<<----
+#        highest_bidder = self.highest_bidder.get()
+#
+#        return Seq(
+#            Assert(Global.latest_timestamp() > auction_end),
+#            self.pay(owner, highest_bid),
+#            # Set global state
+#            self.auction_end.set(Int(0)),
+#            self.governor.set(highest_bidder),                                  # <<<---- COSI NON CAMBIA DI VOLTA IN VOLTA IL GOVERNOR CHE ACQUISISCE DIRITTI RISTRETTI (governor = highest_bidder)
+#            self.highest_bidder.set(Bytes("")),
+#        )
 
 #    @external(bidders=Authorize.holds_token(asset_id: Expr))
     @external
-    def bid(self, payment: abi.PaymentTransaction, previous_bidder: abi.Account):
+    def bid(self, payment: abi.PaymentTransaction):
         payment = payment.get()
-
         auction_end = self.auction_end.get()
         highest_bidder = self.highest_bidder.get()
         highest_bid = self.highest_bid.get()
@@ -138,7 +143,8 @@ class Auction(Application):
             Assert(payment.amount() > highest_bid),
             Assert(Txn.sender() == payment.sender()),
             # Return previous bid
-            If(highest_bidder != Bytes(""), Seq(Assert(highest_bidder == previous_bidder.address()), self.pay(highest_bidder, highest_bid))),
+            If(highest_bidder != Bytes(""), Seq(self.pay(highest_bidder, highest_bid))),
+#            If(highest_bidder != Bytes(""), self.pay(highest_bidder, highest_bid)),
             # Set global state
             self.highest_bid.set(payment.amount()),
             self.highest_bidder.set(payment.sender()),
