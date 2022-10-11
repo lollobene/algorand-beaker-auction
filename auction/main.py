@@ -8,6 +8,7 @@ from beaker import consts
 from beaker.sandbox import get_accounts, get_algod_client
 from beaker.client import ApplicationClient
 from beaker.client.logic_error import LogicException
+import time
 
 from auction import Auction
 
@@ -50,7 +51,7 @@ def demo():
         result = app_client.call(
             Auction.start_auction,
             starting_price = 1*consts.algo,
-            duration = 5*60
+            duration = 30
         )
 
     except LogicException as e:
@@ -62,7 +63,7 @@ def demo():
 
     # Start bidding - 1st user
 
-    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok      # CHECK suggested parameters                    <<<---
+    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok              # CHECK suggested parameters                    <<<---
     sp = client.suggested_params()
     #sp.flat_fee = True
     #sp.fee = 3*consts.milli_algo
@@ -77,6 +78,7 @@ def demo():
         result = bidder_client.call(
             Auction.bid,
             payment=tx1,
+            previous_bidder = addr1
         )
 
     except LogicException as e:
@@ -88,10 +90,10 @@ def demo():
 
     # Start bidding - 2nd user
 
-    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok      # CHECK suggested parameters                    <<<---
+    # Cover any fees incurred by inner transactions, maybe overpaying but thats ok              # CHECK suggested parameters                    <<<---
     sp = client.suggested_params()
     #sp.flat_fee = True
-    #sp.fee = 3*consts.milli_algo
+    sp.fee = 3*consts.milli_algo
 
     # Preparing transaction
     bidder_client_2 = app_client.prepare(signer3)
@@ -103,6 +105,22 @@ def demo():
         result = bidder_client_2.call(
             Auction.bid,
             payment=tx2,
+            previous_bidder = addr2
+        )
+
+    except LogicException as e:
+        print(f"\n{e}\n")
+
+    print(f"Current app state: {app_client.get_application_state()}\n")
+    print_balances(app_addr, addr1, addr2, addr3)
+
+
+    # End auction
+    time.sleep(30)
+
+    try:
+        result = app_client.call(
+            Auction.end_auction,
         )
 
     except LogicException as e:
@@ -117,7 +135,7 @@ def demo():
     #     sender: Optional[str] = None,
     #     signer: Optional[TransactionSigner] = None,
     #     suggested_params: Optional[SuggestedParams] = None,
-    #     on_complete: OnComplete = OnComplete.NoOpOC,ù
+    #     on_complete: OnComplete = OnComplete.NoOpOC,
     #     local_schema: Optional[StateSchema] = None,
     #     global_schema: Optional[StateSchema] = None,
     #     approval_program: Optional[bytes] = None,
