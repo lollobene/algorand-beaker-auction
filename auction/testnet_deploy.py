@@ -13,7 +13,7 @@ from beaker.client import ApplicationClient, LogicException
 
 from pyteal import *
 
-from dotenv import load_dotenv
+from dotenv_example import load_dotenv
 import os
 
 from auction import Auction
