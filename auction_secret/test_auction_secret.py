@@ -15,7 +15,7 @@ from beaker import client, sandbox, testing
 #from beaker.client.logic_error import LogicException
 from beaker import *
 from algosdk import transaction
-from auction import Auction
+from auction_secret import SecretAuction
 
 MIN_FEE = 1000
 

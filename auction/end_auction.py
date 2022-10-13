@@ -2,12 +2,10 @@ from beaker.client import ApplicationClient, LogicException
 from beaker.sandbox import get_algod_client, get_accounts
 from beaker import *
 from pyteal import *
-
 from algosdk.future import transaction
-from algosdk.atomic_transaction_composer import (
-    TransactionWithSigner,
-)
-
+#from algosdk.atomic_transaction_composer import (
+#    TransactionWithSigner,
+#)
 from auction import Auction
 
 APP_ID = 147

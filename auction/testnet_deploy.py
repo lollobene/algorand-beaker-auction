@@ -1,21 +1,16 @@
 from algosdk import mnemonic
 from algosdk import transaction
-
 from algosdk.v2client import algod
 from algosdk.future import transaction
 from algosdk.atomic_transaction_composer import (
   AccountTransactionSigner,
   TransactionWithSigner,
 )
-
 from beaker import *
 from beaker.client import ApplicationClient, LogicException
-
 from pyteal import *
-
 from dotenv_example import load_dotenv
 import os
-
 from auction import Auction
 
 

@@ -8,7 +8,7 @@ from pyteal import *
 
 MIN_FEE = Int(1000)                                     # minimum fee on Algorand is currently 1000 microAlgos
 
-class Auction(Application):
+class SecretAuction(Application):
 
     ##############
     # Application State
@@ -44,13 +44,13 @@ class Auction(Application):
     ##############
 
     # Call this only on create
-#    @create
+#    @create    
 #    @create(authorize = Authorize.only(governor))
 #    def create(self):
 #        return self.initialize_application_state()
 
     @create
-#    @create(authorize = Authorize.only(governor))          # CHECK! PROBLEMS   <<<---
+#    @create(authorize = Authorize.only(governor))
     def create(self):
         return Seq(
             [
@@ -81,9 +81,9 @@ class Auction(Application):
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-                    TxnField.fee: Int(0),
-#                    TxnField.fee: MIN_FEE,
-#                    TxnField.close_remainder_to: Bytes(""),
+#                    TxnField.fee: Int(1000),
+                    TxnField.fee: MIN_FEE,
+#                    TxnField.close_remainder_to: Bytes(None),
 #                    TxnField.rekey_to: Bytes(None)
                 }
             ),
@@ -100,7 +100,7 @@ class Auction(Application):
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-#                    TxnField.fee: Int(0),
+#                    TxnField.fee: Int(1000),
                     TxnField.fee: MIN_FEE,
                     TxnField.close_remainder_to: Global.creator_address(),
 #                    TxnField.rekey_to: Bytes(None)
@@ -203,21 +203,18 @@ class Auction(Application):
 #        return Approve()
 
 #    @delete
-#    def delete(self, app_addr: abi.Account):
+#    def delete(self, app_balance: abi.Uint64):
 #        auction_end = self.auction_end.get()
-#        app_balance = client.account_info(app_addr)["amount"]
-#        
 #        return Seq(
 #            Assert(Global.latest_timestamp() > auction_end),
-#            Assert(Int(app_balance) == Int(0)),
-##            Assert(payment.amount() == Int(1000000))
+#            Assert(app_balance == Int(0)),
 #            Approve()
 #        )
 
 
 
 if __name__ == "__main__":
-    Auction().dump("artifacts")
+    SecretAuction().dump("artifacts")
 
 #    if os.path.exists("approval.teal"):
 #        os.remove("approval.teal")
