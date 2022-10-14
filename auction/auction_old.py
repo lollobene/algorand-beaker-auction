@@ -8,7 +8,7 @@ from pyteal import *
 
 MIN_FEE = Int(1000)                                     # minimum fee on Algorand is currently 1000 microAlgos
 
-class SecretAuction(Application):
+class Auction(Application):
 
     ##############
     # Application State
@@ -39,27 +39,20 @@ class SecretAuction(Application):
     )
 
 
-    ##############
-    # Administrative Actions
-    ##############
-
-    # Call this only on create
-#    @create    
-#    @create(authorize = Authorize.only(governor))
-#    def create(self):
-#        return self.initialize_application_state()
-
     @create
-#    @create(authorize = Authorize.only(governor))
     def create(self):
-        return Seq(
-            [
-                self.governor.set(Txn.sender()),
-                self.highest_bidder.set(Bytes("")),
-                self.highest_bid.set(Int(0)),
-                self.auction_end.set(Int(0))
-            ]
-        )
+        return self.initialize_application_state()
+
+#    @create
+#    def create(self):
+#        return Seq(
+#            [
+#                self.governor.set(Txn.sender()),
+#                self.highest_bidder.set(Bytes("")),
+#                self.highest_bid.set(Int(0)),
+#                self.auction_end.set(Int(0))
+#            ]
+#        )
 
     @external(authorize = Authorize.only(governor))
     def set_governor(self, new_governor: abi.Account):
@@ -81,10 +74,10 @@ class SecretAuction(Application):
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-#                    TxnField.fee: Int(1000),
-                    TxnField.fee: MIN_FEE,
-#                    TxnField.close_remainder_to: Bytes(None),
-#                    TxnField.rekey_to: Bytes(None)
+                    TxnField.fee: Int(0),
+#                    TxnField.fee: MIN_FEE,
+#                    TxnField.close_remainder_to: Global.zero_address(),
+#                    TxnField.rekey_to: Global.zero_address
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -100,10 +93,11 @@ class SecretAuction(Application):
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-#                    TxnField.fee: Int(1000),
+#                    TxnField.fee: Int(0),
                     TxnField.fee: MIN_FEE,
+#                    TxnField.fee: Global.min_txn_fee,
                     TxnField.close_remainder_to: Global.creator_address(),
-#                    TxnField.rekey_to: Bytes(None)
+#                    TxnField.rekey_to: Global.zero_address()
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -115,29 +109,29 @@ class SecretAuction(Application):
     ##############
 
     #TRANSACTION IMPLEMENTATION (FROM BEAKER-ACUTION EXAMPLE)
-    @external(authorize = Authorize.only(governor))
-    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, duration: abi.Uint64):
-        payment = payment.get()
-        return Seq(
-            # Verify payment txn
-            Assert(payment.receiver() == Global.current_application_address()),
-            Assert(payment.amount() == Int(1000000)),
-#            Assert(payment.amount() == Int(100_000)),
-            # Set global state
-            self.auction_end.set(Global.latest_timestamp() + duration.get()),
-            self.highest_bid.set(starting_price.get()),
-            self.highest_bidder.set(Bytes(""))
-        )
-
-    #NO TRANSACTION IMPLEMENTATION                          <<<--- SE SERVONO FONDI INZIALI ALL'APP, SI POTREBBE CHIAMARE FUND E LASCIARE QUESTA COSI'?
 #    @external(authorize = Authorize.only(governor))
-#    def start_auction(self, starting_price: abi.Uint64, duration: abi.Uint64):
+#    def start_auction(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, duration: abi.Uint64):
+#        payment = payment.get()
 #        return Seq(
+#            # Verify payment txn
+#            Assert(payment.receiver() == Global.current_application_address()),
+#            Assert(payment.amount() == Int(1000000)),
+##            Assert(payment.amount() == Int(100_000)),
 #            # Set global state
 #            self.auction_end.set(Global.latest_timestamp() + duration.get()),
 #            self.highest_bid.set(starting_price.get()),
 #            self.highest_bidder.set(Bytes(""))
 #        )
+
+    #NO TRANSACTION IMPLEMENTATION                          <<<--- SE SERVONO FONDI INZIALI ALL'APP, SI POTREBBE CHIAMARE FUND E LASCIARE QUESTA COSI'?
+    @external(authorize = Authorize.only(governor))
+    def start_auction(self, starting_price: abi.Uint64, duration: abi.Uint64):
+        return Seq(
+            # Set global state
+            self.auction_end.set(Global.latest_timestamp() + duration.get()),
+            self.highest_bid.set(starting_price.get()),
+            self.highest_bidder.set(Bytes(""))
+        )
 
 
     ##############
@@ -203,18 +197,21 @@ class SecretAuction(Application):
 #        return Approve()
 
 #    @delete
-#    def delete(self, app_balance: abi.Uint64):
+#    def delete(self, app_addr: abi.Account):
 #        auction_end = self.auction_end.get()
+#        app_balance = client.account_info(app_addr)["amount"]
+#        
 #        return Seq(
 #            Assert(Global.latest_timestamp() > auction_end),
-#            Assert(app_balance == Int(0)),
+#            Assert(Int(app_balance) == Int(0)),
+##            Assert(payment.amount() == Int(1000000))
 #            Approve()
 #        )
 
 
 
 if __name__ == "__main__":
-    SecretAuction().dump("artifacts")
+    Auction().dump("artifacts")
 
 #    if os.path.exists("approval.teal"):
 #        os.remove("approval.teal")
