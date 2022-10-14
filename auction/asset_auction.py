@@ -6,16 +6,6 @@ from pyteal import *
 
 MIN_FEE = Int(1000)                                     # minimum fee on Algorand is currently 1000 microAlgos
 
-owner_key = Bytes("seller")
-#nft_id_key = Bytes("nft_id")
-start_time_key = Bytes("start")
-end_time_key = Bytes("end")
-reserve_amount_key = Bytes("reserve_amount")
-#min_bid_increment_key = Bytes("min_bid_inc")
-num_bids_key = Bytes("num_bids")
-highest_bid_key = Bytes("bid_amount")
-highest_bidder_key = Bytes("bid_account")
-
 class Auction(Application):
 
     ##############
@@ -34,24 +24,29 @@ class Auction(Application):
     )
 
     highest_bidder: Final[ApplicationStateValue] = ApplicationStateValue(
-        stack_type = TealType.bytes
+        stack_type = TealType.bytes,
+        default = Bytes(""),
     )
 
     # Global Ints (4)
     highest_bid: Final[ApplicationStateValue] = ApplicationStateValue(
-        stack_type = TealType.uint64
+        stack_type = TealType.uint64,
+        default = Int(0)
     )
 
-#    nft_id: Final[ApplicationStateValue] = ApplicationStateValue(
-#        stack_type = TealType.uint64
-#    )
+    nft_id: Final[ApplicationStateValue] = ApplicationStateValue(
+        stack_type = TealType.uint64,
+        default = Int(0)
+    )
 
     auction_start: Final[ApplicationStateValue] = ApplicationStateValue(
-        stack_type = TealType.uint64
+        stack_type = TealType.uint64,
+        default = Int(0)
     )
 
     auction_end: Final[ApplicationStateValue] = ApplicationStateValue(
-        stack_type = TealType.uint64
+        stack_type = TealType.uint64,
+        default = Int(0)
     )
 
 
@@ -70,12 +65,19 @@ class Auction(Application):
     ##############
 
     @create
-    def create(self, start_offset: abi.Uint64, duration: abi.Uint64):
+    def create(self):
+        return self.initialize_application_state()
+
+    ##############
+    # Start auction
+    ##############
+
+    @external(authorize = Authorize.only(owner))
+    def setup(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, nft: abi.Asset, start_offset : abi.Uint64, duration: abi.Uint64):
         return Seq(
-            self.owner.set(Txn.sender()),
-#            self.nft_id.set(Int(0)),
-            self.highest_bid.set(Int(0)),
-            self.highest_bidder.set(Bytes("")),
+            # Set global state
+            self.highest_bid.set(starting_price.get()),
+            self.nft_id.set(nft.asset_id()),
             self.auction_start.set(Global.latest_timestamp() + start_offset.get()),
             self.auction_end.set(Global.latest_timestamp() + start_offset.get() + duration.get()),
             Assert(
@@ -83,58 +85,8 @@ class Auction(Application):
                     Global.latest_timestamp() < self.auction_start.get(),
                     self.auction_start.get() < self.auction_end.get()
                 )
-            )
-        )
-
-
-#    @opt_in
-#    def opt_in(self):
-#        return self.initialize_account_state()
-
-
-#    @external
-#    def opt_in(self, payment: abi.PaymentTransaction, nft_id: abi.Uint64):
-#    def opt_in(self, nft_id: abi.Uint64):
-#    def opt_in(self):
-#        return Seq(
-#            self.nft_id.set(nft_id.get()),
-            # opt into NFT asset -- because you can't opt in if you're already opted in, this is what
-            # we'll use to make sure the contract has been set up
-##            InnerTxnBuilder.Begin(),
-##            InnerTxnBuilder.SetFields(
-##                {
-##                    TxnField.type_enum: TxnType.AssetTransfer,
-##                    TxnField.xfer_asset: self.nft_id.get(),
-##                    TxnField.asset_receiver: Global.current_application_address(),
-##                }
-##            ),
-##            InnerTxnBuilder.Submit(),
-##            Approve()
-#        )
-
-
-    #TRANSACTION IMPLEMENTATION (FROM BEAKER-ACUTION EXAMPLE)
-#    @external(authorize = Authorize.only(owner))
-#    def setup(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64):
-#        payment = payment.get()
-#        return Seq(
-#            Assert(payment.sender() == Txn.sender()),
-#            Assert(payment.type() == TxnType.AssetTransfer()),
-#            Assert(payment.index() == TxnType.xfer_asset),
-#            Assert(payment.receiver() == Global.current_application_address()),
-#            self.highest_bid.set(starting_price.get())
-#        )
-
-
-    ##############
-    # Start auction
-    ##############
-
-    @external(authorize = Authorize.only(owner))
-    def setup(self, starting_price: abi.Uint64):
-        return Seq(
-            # Set global state
-            self.highest_bid.set(starting_price.get()),
+            ),
+            self.do_opt_in(self.nft_id)
         )
 
 
@@ -150,7 +102,7 @@ class Auction(Application):
         highest_bid = self.highest_bid.get()
 
         return Seq(
-#            Assert(Global.latest_timestamp() < auction_end),
+            Assert(Global.latest_timestamp() < auction_end),
             # Verify payment transaction
             Assert(payment.amount() > highest_bid),
             Assert(Txn.sender() == payment.sender()),
@@ -167,32 +119,17 @@ class Auction(Application):
     ##############
 
     @external
-    def end_auction(self):
+    def end_auction(self, highest_bidder: abi.Account, nft: abi.Asset):
         auction_end = self.auction_end.get()
         highest_bid = self.highest_bid.get()
         owner = self.owner.get()
+        highest_bidder = self.highest_bidder.get()
 
         return Seq(
             Assert(Global.latest_timestamp() > auction_end),
+            self.do_aclose(highest_bidder, self.nft_id, Int(1)),
             self.pay_owner(owner, highest_bid)
         )
-
-
-#    @close_out
-#    def close_out(self):
-#        return Approve()
-
-#    @delete
-#    def delete(self, app_addr: abi.Account):
-#        auction_end = self.auction_end.get()
-#        app_balance = client.account_info(app_addr)["amount"]
-#        
-#        return Seq(
-#            Assert(Global.latest_timestamp() > auction_end),
-#            Assert(Int(app_balance) == Int(0)),
-##            Assert(payment.amount() == Int(1000000))
-#            Approve()
-#        )
 
     ##############
     # Smart Contract payment
@@ -202,7 +139,7 @@ class Auction(Application):
     @internal(TealType.none)
     def pay_bidder(self, receiver: Expr, amount: Expr):
         return Seq(
-            InnerTxnBuilder.Begin(),                            #Inner transactions are only available in AVM version 5 or higher   <<<--- CHECK    (source: https://pyteal.readthedocs.io/en/stable/accessing_transaction_field.html)
+            InnerTxnBuilder.Begin(),                           
             InnerTxnBuilder.SetFields(
                 {
                     TxnField.type_enum: TxnType.Payment,
@@ -211,7 +148,6 @@ class Auction(Application):
                     TxnField.fee: Int(0),
 #                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
 #                    TxnField.close_remainder_to: Global.zero_address(),
-#                    TxnField.rekey_to: Global.zero_address
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -227,17 +163,41 @@ class Auction(Application):
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-#                    TxnField.fee: Int(0),
                     TxnField.fee: MIN_FEE,
-#                    TxnField.fee: Global.min_txn_fee,
                     TxnField.close_remainder_to: Global.creator_address(),
+#                    TxnField.fee: Global.min_txn_fee,
 #                    TxnField.rekey_to: Global.zero_address()
                 }
             ),
             InnerTxnBuilder.Submit()
         )
 
+    @internal(TealType.none)
+    def do_axfer(self, receiver, asset_id, amount):
+        return InnerTxnBuilder.Execute(
+            {
+                TxnField.type_enum: TxnType.AssetTransfer,
+                TxnField.xfer_asset: asset_id,
+                TxnField.asset_amount: amount,
+                TxnField.asset_receiver: receiver,
+                TxnField.fee: MIN_FEE,
+            }
+        )
 
+    @internal(TealType.none)
+    def do_aclose(self, receiver, asset_id, amount):
+        return InnerTxnBuilder.Execute(
+            {
+                TxnField.type_enum: TxnType.AssetTransfer,
+                TxnField.xfer_asset: asset_id,
+                TxnField.asset_close_to: receiver,
+                TxnField.fee: MIN_FEE,
+            }
+        )
+
+    @internal(TealType.none)
+    def do_opt_in(self, asset_id):
+        return self.do_axfer(self.address, asset_id, Int(0))
 
 if __name__ == "__main__":
     Auction().dump("artifacts")

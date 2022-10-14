@@ -5,109 +5,11 @@ from algosdk.atomic_transaction_composer import *
 from algosdk.abi import Method, Contract
 import json
 
-# create new application
-def create_app(
-        client, private_key, approval_program, clear_program, global_schema, local_schema, args=[]
-):
-    # define sender as creator
-    sender = account.address_from_private_key(private_key)
-
-    # declare on_complete as NoOp
-    on_complete = transaction.OnComplete.NoOpOC.real
-
-    # get node suggested parameters
-    params = client.suggested_params()
-
-    # create unsigned transaction
-    txn = transaction.ApplicationCreateTxn(
-        sender,
-        params,
-        on_complete,
-        approval_program,
-        clear_program,
-        global_schema,
-        local_schema,
-        args,
-    )
-
-    # sign transaction
-    signed_txn = txn.sign(private_key)
-    tx_id = signed_txn.transaction.get_txid()
-    client.send_transactions([signed_txn])
-
-    # wait for confirmation
-    try:
-        transaction_response = transaction.wait_for_confirmation(client, tx_id, 10)
-        print("TXID: ", tx_id)
-        print(
-            "Result confirmed in round: {}".format(
-                transaction_response["confirmed-round"]
-            )
-        )
-
-    except Exception as err:
-        print(err)
-        return
-
-    # display results
-    transaction_response = client.pending_transaction_info(tx_id)
-    app_id = transaction_response["application-index"]
-    print("Created new app-id:", app_id)
-
-    return app_id
-
-# Utility function to get the Method object for a given method name
-def get_method(name: str, js: str) -> Method:
-    c = Contract.from_json(js)
-    for m in c.methods:
-        if m.name == name:
-            return m
-    raise Exception("No method with the name {}".format(name))
-
-
-# call application
-def call_app(client, private_key, index, contract, method_name="increment", method_args=[]):
-    # get sender address
-    sender = account.address_from_private_key(private_key)
-    # create a Signer object
-    signer = AccountTransactionSigner(private_key)
-
-    # get node suggested parameters
-    sp = client.suggested_params()
-
-    # Create an instance of AtomicTransactionComposer
-    atc = AtomicTransactionComposer()
-    atc.add_method_call(
-        app_id=index,
-        method=contract.get_method_by_name(method_name),
-        sender=sender,
-        sp=sp,
-        signer=signer,
-        method_args=method_args,  # No method args needed here
-    )
-
-    # send transaction
-    results = atc.execute(client, 2)
-
-    # wait for confirmation
-    print("TXID: ", results.tx_ids[0])
-    print("Result confirmed in round: {}".format(results.confirmed_round))
-
-
-
-
-
-
-
-
-
-
 
 # helper function that converts a mnemonic passphrase into a private signing key
 def get_private_key_from_mnemonic(mn):
     private_key = mnemonic.to_private_key(mn)
     return private_key
-
 
 # helper function that formats global state for printing
 def format_state(state):
@@ -124,25 +26,6 @@ def format_state(state):
             # integer
             formatted[formatted_key] = value["uint"]
     return formatted
-
-
-# helper function to read app global state
-def read_global_state(client, app_id):
-    app = client.application_info(app_id)
-    global_state = (
-        app["params"]["global-state"] if "global-state" in app["params"] else []
-    )
-    return format_state(global_state)
-
-
-# helper function to read app local state
-def read_local_state(client, addr, app_id) :
-    results = client.account_info(addr)
-    local_state = results['apps-local-state'][0]
-    for index in local_state:
-        if local_state[index] == app_id :
-            local = local_state['key-value']
-    return format_state(local)
 
 
 # opting-in asset
@@ -224,7 +107,6 @@ def print_asset_holding(client: algod.AlgodClient, account, asset_id):
             print("\nAccount:", account)
             print(json.dumps(scrutinized_asset, indent=4))
             break
-
 
 # CREATE ASSET
 def createDummyAsset(client: algod.AlgodClient, total: int, account: str, sk: str) -> int:

@@ -14,7 +14,7 @@ from beaker.client.logic_error import LogicException
 import beaker.testing
 import time
 from auction_old import Auction
-import test_auction
+import auction.test_auction as test_auction
 
 
 MIN_FEE = 1000                                              # minimum fee on Algorand is currently 1000 microAlgos
