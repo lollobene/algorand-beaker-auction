@@ -9,7 +9,7 @@ from algosdk.atomic_transaction_composer import (
 from beaker import *
 from beaker.client import ApplicationClient, LogicException
 from pyteal import *
-from dotenv_example import load_dotenv
+from auction.dotenv_example import load_dotenv
 import os
 from auction import Auction
 
