@@ -35,19 +35,16 @@ print("Address Secret key =", sk3)
 # get sandbox client
 client = get_algod_client()
 
-
-##startTime = int(time()) + 10            # start time is 10 seconds in the future
-
-
 # Auction settings
+#startTime = int(time()) + 10            # start time is 10 seconds in the future
 offset = 10                             # start time is 10 seconds in the future
-length = 1200                             # auction duration
-commitment_length = 100
-##commitTime = startTime + 10
-##endTime = start_offset + duration       # end time is 60 seconds after start
+length = 1200                           # auction duration
+commitment_length = 100                 # commitment duration
+#commitTime = startTime + 10
+#endTime = start_offset + duration       # end time is 60 seconds after start
 reserve = 1*consts.algo                 # 1 Algo
-##increment = 100000                      # 0.1 Algo
-#deposit = 100000                        # 0.1 Algo
+#increment = 100000                      # 0.1 Algo
+#deposit = 100000                        # 0.1 Algo (minimum balance)                #CHECK (POCO?)  <<<---
 
 # Create an Application client containing both an algod client and my app
 app_client = ApplicationClient(client, Auction(), signer = owner_sign)
@@ -57,19 +54,20 @@ def demo():
 
     # Transaction parameters
     tx_params = client.suggested_params()
-#    tx_params.first =
-#    tx_params.last =
-#    tx_params.gh = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="         #TO BE VALIDATED ONCE ON release NETWORK (MainNet)
-#    tx_params.flat_fee = True
-#    tx_params.fee = 1*consts.milli_algo                                    # minimum fee on Algorand is currently 1000 microAlgos
+    # tx_params.first =
+    # tx_params.last =
+    # tx_params.gh = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="          #TO BE VALIDATED ONCE ON release NETWORK (MainNet)
+    # tx_params.flat_fee = True
     tx_params.fee = MIN_FEE
-#    tx_params.min_fee
+    # tx_params.min_fee
 
     
     ##############
     # NFT CREATION
     ##############
+
     nft = create_asset(owner_addr, owner_sk, "dummyNFT")
+
 
     ##############
     # APP CREATION
@@ -86,7 +84,7 @@ def demo():
     print(f"Created App with id: {app_id} and address: {app_addr} in tx: {txid}\n")
     print(f"Current app state: {app_client.get_application_state()}")
 
-
+    # Fund the app account with 1 algo (by the owner)
     app_client.fund(1*consts.algo)
 
     # Check if the accounts hold the asset, otherwise opt-in
@@ -94,10 +92,10 @@ def demo():
     # optInToAsset(client, addr2, sk2, nft)
     # optInToAsset(client, addr3, sk3, nft)
 
-    ##############
-    # NFT OPT IN
-    ##############
 
+    ##############
+    # NFT OPT-IN FOR THE CONTRACT
+    ##############
 
     try:
         result = app_client.call(
@@ -108,7 +106,9 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
 
-   
+    # for res in result.tx_ids:
+    #    print(res)
+
 
     ##############
     # START AUCTION
@@ -119,20 +119,20 @@ def demo():
     print("--------------------------------------------------------------------------------")
     print("\nSetup the Auction application......")
     
-
-    sp = client.suggested_params()
     ptxn = TransactionWithSigner(
-        txn=transaction.PaymentTxn(owner_addr, sp, app_addr, 1*consts.algo), signer=owner_sign
+        txn = transaction.PaymentTxn(owner_addr, tx_params, app_addr, 1*consts.algo), signer = owner_sign
     )
+
+    # Asset transfer to the smart contract
     atxn = TransactionWithSigner(
-      txn = transaction.AssetTransferTxn(owner_addr, sp, app_addr, 1, nft), signer=owner_sign
+      txn = transaction.AssetTransferTxn(owner_addr, tx_params, app_addr, 1, nft), signer = owner_sign
     )
 
     try:
         result = app_client.call(
             Auction.setup,
-            payment=ptxn,
-            asset=atxn,
+            payment = ptxn,
+            asset = atxn,
             starting_price = 1*consts.algo,
             nft = nft,
             start_offset = offset,
@@ -144,53 +144,71 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
 
+    # for res in result.tx_ids:
+    #    print(res)
+
     print(f"Current app state: {app_client.get_application_state()}")
 
+
     ##############
-    # START COMMITTING - USER 2
+    # COMMITTING - USER 2
     ##############
 
-    print("\nSTART COMMITTING: USER 2\n")
+    print("\nCOMMITTING: USER 2\n")
 
     bidder_client = app_client.prepare(signer2)
-    
+
+    # Enable the smart contract to add a commitment field into user account                 CHECK       <<<---
     bidder_client.opt_in()
 
     tx1 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr2, tx_params, app_addr, 1*consts.algo), signer = signer2
     )
+
     value = 3*consts.algo
+
+    # Hashing the bid value
     commitment = bytes(bytearray.fromhex(sha256(value.to_bytes(8, 'big')).hexdigest()))
+
     try:
         result = bidder_client.call(
         Auction.commit,
         k = 1,
         commitment = commitment,
-        payment=tx1,
-        nft=nft,
+        payment = tx1,
+        nft = nft,
         #on_complete=transaction.OnComplete.OptInOC
     )
     except LogicException as e:
         print(f"\n{e}\n")
 
+    # for res in result.tx_ids:
+    #    print(res)        
+
     print(f"Current app state: {app_client.get_application_state()}")
     print(f"Current account state: {bidder_client.get_account_state()}")
 
+
     ##############
-    # START COMMITTING - USER 3
+    # COMMITTING - USER 3
     ##############
 
-    print("\nSTART COMMITTING: USER 3\n")
+    print("\nCOMMITTING: USER 3\n")
 
     bidder_client2 = app_client.prepare(signer3)
     
+    # Enable the smart contract to add a commitment field into user account                 CHECK       <<<---
     bidder_client2.opt_in()
 
     tx1 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr3, tx_params, app_addr, 1*consts.algo), signer = signer3
     )
+
     value = 4*consts.algo
+
+    # Hashing the bid value
     commitment = bytes(bytearray.fromhex(sha256(value.to_bytes(8, 'big')).hexdigest()))
+
     try:
         result = bidder_client2.call(
         Auction.commit,
@@ -203,22 +221,24 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
 
+    # for res in result.tx_ids:
+    #    print(res)
+
     print(f"Current app state: {app_client.get_application_state()}")
     print(f"Current account state: {bidder_client2.get_account_state()}")
     
-
     
     ##############
-    # START BIDDING - USER 2
+    # BIDDING - USER 2
     ##############
 
-    print("\nSTART BIDDING: USER 2\n")
+    print("\nBIDDING: USER 2\n")
 
+    # Execute bidding
     bidder_client = app_client.prepare(signer2)
     tx1 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr2, tx_params, app_addr, 3*consts.algo), signer = signer2
     )
-
 
     try:
         result = bidder_client.call(
@@ -231,32 +251,28 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
     
+    # for res in result.tx_ids:
+    #    print(res)    
 
     # print("Global state:", read_global_state(client, app_id))
     print(f"Current app state: {app_client.get_application_state()}")
-
-
-#    for res in result.tx_ids:
-#        print(res)
-
-    print(f"Current app state: {app_client.get_application_state()}\n")
     print(f"Current app address info: {app_client.get_application_account_info()}\n")
-#    print(f"Current address info: {app_client.get_account_state()}\n")
+    print(f"Current address info: {app_client.get_account_state()}\n")
     print_balances(app_addr, owner_addr, addr2, addr3)
-
 
     """
     ##############
-    # START BIDDING - USER 3
+    # BIDDING - USER 3
     ##############
 
-    print("START BIDDING: USER 3")
+    print("BIDDING: USER 3")
 
     # Execute bidding
     bidder_client_2 = app_client.prepare(signer3)
     tx2 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr3, tx_params, app_addr, 3*consts.algo), signer = signer3
     )
+
     try:
         result = bidder_client_2.call(
             Auction.bid,
@@ -266,19 +282,23 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
 
+    # for res in result.tx_ids:
+    #    print(res)
+
     print(f"Current app state: {app_client.get_application_state()}\n")
     print(f"Current app address info: {app_client.get_application_account_info()}\n")
     print(f"Current address info: {app_client.get_account_state()}\n")
     print_balances(app_addr, owner_addr, addr2, addr3)
 
+
     ##############
-    # RE-BID - USER 2
+    # RE-BIDDING - USER 2
     ##############
 
-    print("RE-BID: USER 2")
+    print("RE-BIDDING: USER 2")
 
     # Execute bidding
-
+    bidder_client = app_client.prepare(signer2)
     tx1 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr2, tx_params, app_addr, 4*consts.algo), signer = signer2
     )
@@ -289,31 +309,38 @@ def demo():
         payment = tx1,
         previous_bidder = addr3
         )
+
     except LogicException as e:
         print(f"\n{e}\n")
+
+    # for res in result.tx_ids:
+    #    print(res)
 
     print(f"Current app state: {app_client.get_application_state()}\n")
     print(f"Current app address info: {app_client.get_application_account_info()}\n")
     print(f"Current address info: {app_client.get_account_state()}\n")
     print_balances(app_addr, owner_addr, addr2, addr3)
 
+
     ##############
-    # RE-BID - USER 3
+    # RE-BIDDING - USER 3
     ##############
 
-    print("RE-BID: USER 3")
+    print("RE-BIDDING: USER 3")
 
     # Execute bidding
     bidder_client_2 = app_client.prepare(signer3)
     tx2 = TransactionWithSigner(
         txn = transaction.PaymentTxn(addr3, tx_params, app_addr, 5*consts.algo), signer = signer3
     )
+
     try:
         result = bidder_client_2.call(
             Auction.bid,
             payment = tx2,
             previous_bidder = addr2
         )
+
     except LogicException as e:
         print(f"\n{e}\n")
 
@@ -338,11 +365,16 @@ def demo():
     except LogicException as e:
         print(f"\n{e}\n")
 
+    # for res in result.tx_ids:
+    #    print(res)        
+
     print(f"Current app state: {app_client.get_application_state()}\n")
     print(f"Current app address info: {app_client.get_application_account_info()}\n")
-#    print(f"Current address info: {app_client.get_account_state()}\n")
+    print(f"Current address info: {app_client.get_account_state()}\n")
     print_balances(app_addr, owner_addr, addr2, addr3)
+    
     """
+
 
 def print_balances(app: str, addr1: str, addr2: str, addr3: str):
 
@@ -365,15 +397,20 @@ def print_balances(app: str, addr1: str, addr2: str, addr3: str):
 def create_asset(addr, pk, unitname):
     # Get suggested params from network
     sp = client.suggested_params()
+
     # Create the transaction
-    create_txn = transaction.AssetCreateTxn(
-        addr, sp, 1, 0, False, asset_name="dummyNFT", unit_name=unitname
+    create_txn = transaction.AssetCreateTxn(                                            #CHECK MISSING FIELDS TO BE SET     <<<---
+        addr, sp, 1, 0, False, asset_name = "dummyNFT", unit_name = unitname
     )
+
     # Ship it
     txid = client.send_transaction(create_txn.sign(pk))
+
     # Wait for the result so we can return the app id
     result = transaction.wait_for_confirmation(client, txid, 4)
     return result["asset-index"]
+
+
 
 if __name__ == "__main__":
 #    test_auction

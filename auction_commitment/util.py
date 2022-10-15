@@ -11,6 +11,7 @@ def get_private_key_from_mnemonic(mn):
     private_key = mnemonic.to_private_key(mn)
     return private_key
 
+
 # helper function that formats global state for printing
 def format_state(state):
     formatted = {}
@@ -108,10 +109,11 @@ def print_asset_holding(client: algod.AlgodClient, account, asset_id):
             print(json.dumps(scrutinized_asset, indent=4))
             break
 
+
 # CREATE ASSET
 def createDummyAsset(client: algod.AlgodClient, total: int, account: str, sk: str) -> int:
 
-    randomNumber = randint(0, 999)
+    # randomNumber = randint(0, 999)
     # this random note reduces the likelihood of this transaction looking like a duplicate
     randomNote = bytes(randint(0, 255) for _ in range(20))
 
@@ -129,7 +131,7 @@ def createDummyAsset(client: algod.AlgodClient, total: int, account: str, sk: st
         clawback = account,                                                                                     #CHECK      <<<---
         unit_name = f"ALGOT",
         asset_name = f"AlgorandGOT",
-        url = f"https://github.com/algorand-school/handson-contract/blob/main/image/algorand_throne.jpg",       # CHECK     <<<---
+        url = f"https://github.com/algorand-school/handson-contract/blob/main/image/algorand_throne.jpg",       #CHECK      <<<---
         note = randomNote,
         sp = client.suggested_params(),
     )
@@ -167,9 +169,10 @@ def createDummyAsset(client: algod.AlgodClient, total: int, account: str, sk: st
         ptx = client.pending_transaction_info(txid)
         asset_id = ptx["asset-index"]
         print_created_asset(client, account, asset_id)
-#        print_asset_holding(client, account, asset_id)
+        print_asset_holding(client, account, asset_id)
 
     except Exception as e:
         print(e)
 
     return response['asset-index']
+    

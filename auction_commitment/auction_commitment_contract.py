@@ -26,10 +26,10 @@ class Auction(Application):
 
     highest_bidder: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type = TealType.bytes,
-        default = Global.zero_address(),
+        default = Global.zero_address()
     )
 
-    # Global Ints (4)
+    # Global Ints (8)
     highest_bid: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type = TealType.uint64,
         default = Int(0)
@@ -45,12 +45,12 @@ class Auction(Application):
         default = Int(0)
     )
 
-    auction_end: Final[ApplicationStateValue] = ApplicationStateValue(
+    commit_end: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type = TealType.uint64,
         default = Int(0)
     )
 
-    commit_end: Final[ApplicationStateValue] = ApplicationStateValue(
+    auction_end: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type = TealType.uint64,
         default = Int(0)
     )
@@ -61,15 +61,14 @@ class Auction(Application):
     )
 
     commitment: Final[DynamicAccountStateValue] = DynamicAccountStateValue(
-        stack_type=TealType.bytes,
-        max_keys=8,
+        stack_type = TealType.bytes,
+        max_keys = 8
     )
 
     open_commitment: Final[DynamicAccountStateValue] = DynamicAccountStateValue(
-        stack_type=TealType.uint64,
-        max_keys=8,
+        stack_type = TealType.uint64,
+        max_keys = 8
     )
-
 
 
     ##############
@@ -81,7 +80,6 @@ class Auction(Application):
         """sets the owner of the contract, may only be called by the current owner"""
         return self.owner.set(new_owner.address())
 
-
     ##############
     # Application Create
     ##############
@@ -90,12 +88,16 @@ class Auction(Application):
     def create(self):
         return self.initialize_application_state()
 
+    ##############
+    # Opt-in
+    ##############
+
     @opt_in
-    def opt_in(self):
+    def opt_in(self):                               # opt-in for commitment
         return self.initialize_account_state()
 
     @external
-    def nft_opt_in(self, nft: abi.Asset):
+    def nft_opt_in(self, nft: abi.Asset):           # opt-in the nft into the smart contract
         return self.do_opt_in(nft.asset_id())
 
     ##############
@@ -103,16 +105,10 @@ class Auction(Application):
     ##############
 
     @external(authorize = Authorize.only(owner))
-    def setup(
-        self,
-        asset: abi.AssetTransferTransaction, 
-        starting_price: abi.Uint64, 
-        nft: abi.Asset, 
-        start_offset : abi.Uint64, 
-        duration: abi.Uint64,
-        commit_duration: abi.Uint64,
-        deposit: abi.Uint64,
-    ):
+    def setup(self, payment: abi.PaymentTransaction, asset: abi.AssetTransferTransaction, starting_price: abi.Uint64, 
+                nft: abi.Asset, start_offset : abi.Uint64, duration: abi.Uint64, commit_duration: abi.Uint64, deposit: abi.Uint64):
+        #payment = payment.get()
+        #asset = asset.get()
         return Seq(
             # Set global state
             self.highest_bid.set(starting_price.get()),
@@ -127,6 +123,13 @@ class Auction(Application):
                     self.auction_start.get() < self.auction_end.get(),
                     self.auction_start.get() < self.commit_end.get(),
                     self.commit_end.get() < self.auction_end.get(),
+                    #payment.type_enum() == TxnType.Payment,                                    # SERVE?        <<<---
+                    #payment.sender() == Txn.sender(),                                          # SERVE?        <<<---
+                    #payment.receiver() == Global.current_application_address(),                # SERVE?        <<<---
+                    #asset.type_enum() == TxnType.AssetTransfer,                                # SERVE?        <<<---
+                    #asset.xfer_asset() == self.nft_id.get(),                                   # SERVE?        <<<---
+                    #asset.asset_amount == asset.amount(),                                      # SERVE?        <<<---
+                    #asset.asset_receiver == Global.current_application_address()               # SERVE?        <<<---
                 )
             )
         )
@@ -135,45 +138,39 @@ class Auction(Application):
     # Commitment
     ##############
 
-
     @external()
     def commit(self, k: abi.Uint8, commitment: abi.DynamicBytes, payment: abi.PaymentTransaction, nft: abi.Asset):
-        payment = payment.get()
+        payment = payment.get()                                                                 # nft: abi.Asset SERVE?     <<<---
         return Seq(
+            # the auction has been set up
+            #on_bid_nft_holding.hasValue(),                                                 # QUESTO NON LO FACCIAMO PIU?   <<<---
+            #on_bid_nft_holding.value() > Int(0),
             # the auction has started
             Assert(And(
-                Global.latest_timestamp() < self.commit_end.get(),
-                Global.latest_timestamp() >= self.auction_start.get(),
-            ), comment="timestamp"),
+                    Global.latest_timestamp() < self.commit_end.get(),
+                    Global.latest_timestamp() >= self.auction_start.get()
+                ), comment="timestamp"),
             Assert(And(
-                payment.type_enum() == TxnType.Payment,
-                payment.sender() == Txn.sender(),
-                payment.receiver() == Global.current_application_address(),
-                payment.amount() == self.deposit.get()
-            ), comment="payment"),
-            self.commitment[k][payment.sender()].set(commitment.get()),
+                    payment.type_enum() == TxnType.Payment,
+                    payment.sender() == Txn.sender(),
+                    payment.receiver() == Global.current_application_address(),
+                    payment.amount() == self.deposit.get()
+                ), comment="payment"),
+            self.commitment[k][payment.sender()].set(commitment.get())
         )
-
 
     ##############
     # Bidding
     ##############
     
     @external
-    def bid(
-        self, 
-        payment: abi.PaymentTransaction, 
-        highest_bidder: abi.Account,
-        old_k: abi.Uint8, 
-        new_k: abi.Uint8
-    ):
-        payment = payment.get()
-
+    def bid(self, payment: abi.PaymentTransaction, highest_bidder: abi.Account, old_k: abi.Uint8, new_k: abi.Uint8):
+        payment = payment.get()                                             # highest_bidder: abi.Account SERVE?     <<<---
         return Seq(
             # the auction has started
             Assert(And(
                 Global.latest_timestamp() < self.auction_end.get(),
-                Global.latest_timestamp() >= self.commit_end.get(),
+                Global.latest_timestamp() >= self.commit_end.get()
             ), comment="timestamp"),
             Assert(And(
                 payment.type_enum() == TxnType.Payment,
@@ -187,13 +184,11 @@ class Auction(Application):
 
             self.commitment[old_k][payment.sender()].delete(),
             self.open_commitment[new_k][payment.sender()].set(payment.amount()),
-            If(
-                payment.amount() >= self.highest_bid.get()
-            ).Then(
+            If(payment.amount() >= self.highest_bid.get())
+            .Then(
                 Seq(
-                    If(self.highest_bidder != Global.zero_address()).
-                    Then(
-                        self.pay_bidder(self.highest_bidder.get(), self.highest_bid.get())
+                    If(self.highest_bidder != Global.zero_address())
+                    .Then(self.pay_bidder(self.highest_bidder.get(), self.highest_bid.get())
                     ),
                     self.highest_bidder.set(Txn.sender()),
                     self.highest_bid.set(payment.amount()),
@@ -222,7 +217,7 @@ class Auction(Application):
         )
 
     ##############
-    # Smart Contract payment
+    # Smart Contract payment functions
     ##############
 
     # Refund previous bidder
@@ -237,7 +232,8 @@ class Auction(Application):
                     TxnField.amount: amount - Global.min_txn_fee(),
  #                   TxnField.fee: Int(0),
 #                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
-#                    TxnField.close_remainder_to: Global.zero_address(),
+#                    TxnField.close_remainder_to: Global.zero_address(),                    # SERVE?        <<<---
+#                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -255,8 +251,8 @@ class Auction(Application):
                     TxnField.amount: amount,
                     TxnField.fee: MIN_FEE,
                     TxnField.close_remainder_to: Global.creator_address(),
-#                    TxnField.fee: Global.min_txn_fee,
-#                    TxnField.rekey_to: Global.zero_address()
+#                    TxnField.close_remainder_to: Global.zero_address(),                    # SERVE?        <<<---
+#                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -270,7 +266,7 @@ class Auction(Application):
                 TxnField.xfer_asset: asset_id,
                 TxnField.asset_amount: amount,
                 TxnField.asset_receiver: receiver,
-                TxnField.fee: MIN_FEE,
+                TxnField.fee: MIN_FEE
             }
         )
 
@@ -281,13 +277,15 @@ class Auction(Application):
                 TxnField.type_enum: TxnType.AssetTransfer,
                 TxnField.xfer_asset: asset_id,
                 TxnField.asset_close_to: receiver,
-                TxnField.fee: MIN_FEE,
+                TxnField.fee: MIN_FEE
             }
         )
 
     @internal(TealType.none)
     def do_opt_in(self, asset_id):
         return self.do_axfer(self.address, asset_id, Int(0))
+
+
 
 if __name__ == "__main__":
     Auction().dump("artifacts")

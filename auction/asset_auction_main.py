@@ -106,7 +106,7 @@ def demo():
     try:
         result = app_client.call(
             Auction.setup,
-            payment=ptxn,
+            payment = ptxn,
             starting_price = 1*consts.algo,
             nft = nft,
             start_offset = offset,
@@ -122,7 +122,7 @@ def demo():
     # SENDING NFT TO THE SMART CONTRACT
     ##############
     
-    txn=transaction.AssetTransferTxn(owner_addr, sp, app_addr, 1, nft)
+    txn = transaction.AssetTransferTxn(owner_addr, sp, app_addr, 1, nft)
     signed_txn = txn.sign(owner_sk)
 
     try:

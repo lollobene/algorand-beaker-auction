@@ -25,7 +25,7 @@ class Auction(Application):
 
     highest_bidder: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type = TealType.bytes,
-        default = Bytes(""),
+        default = Bytes("")
     )
 
     # Global Ints (4)
@@ -74,6 +74,7 @@ class Auction(Application):
 
     @external(authorize = Authorize.only(owner))
     def setup(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, nft: abi.Asset, start_offset : abi.Uint64, duration: abi.Uint64):
+        payment = payment.get()
         return Seq(
             # Set global state
             self.highest_bid.set(starting_price.get()),
@@ -83,7 +84,12 @@ class Auction(Application):
             Assert(
                 And(
                     Global.latest_timestamp() < self.auction_start.get(),
-                    self.auction_start.get() < self.auction_end.get()
+                    self.auction_start.get() < self.auction_end.get(),
+                    #payment.type_enum() == TxnType.Payment,                                    # SERVE?        <<<---
+                    #payment.sender() == Txn.sender(),                                          # SERVE?        <<<---
+                    #payment.receiver() == Global.current_application_address(),                # SERVE?        <<<---
+                    #payment.close_remainder_to() == Global.zero_address(),                     # SERVE?        <<<---
+                    #payment.rekey_to: Global.zero_address()                                    # SERVE?        <<<---
                 )
             ),
             self.do_opt_in(self.nft_id)
@@ -104,8 +110,12 @@ class Auction(Application):
         return Seq(
             Assert(Global.latest_timestamp() < auction_end),
             # Verify payment transaction
-            Assert(payment.amount() > highest_bid),
-            Assert(Txn.sender() == payment.sender()),
+            Assert(                                                                 # CHIAMARE PIU' ASSERT E' COSTOSO?  <<<---
+                And(
+                    payment.amount() > highest_bid,
+                    Txn.sender() == payment.sender()
+                )
+            ),
             # Return money to previous bidder
             If(highest_bidder != Bytes(""), Seq(Assert(highest_bidder == previous_bidder.address()), self.pay_bidder(highest_bidder, highest_bid))),
             # Set global state
@@ -119,7 +129,7 @@ class Auction(Application):
     ##############
 
     @external
-    def end_auction(self, highest_bidder: abi.Account, nft: abi.Asset):
+    def end_auction(self, highest_bidder: abi.Account, nft: abi.Asset):             # nft: abi.Asset SERVE?     <<<---
         auction_end = self.auction_end.get()
         highest_bid = self.highest_bid.get()
         owner = self.owner.get()
@@ -132,7 +142,7 @@ class Auction(Application):
         )
 
     ##############
-    # Smart Contract payment
+    # Smart Contract payment functions
     ##############
 
     # Refund previous bidder
@@ -147,7 +157,8 @@ class Auction(Application):
                     TxnField.amount: amount - Global.min_txn_fee(),
                     TxnField.fee: Int(0),
 #                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
-#                    TxnField.close_remainder_to: Global.zero_address(),
+#                    TxnField.close_remainder_to: Global.zero_address(),                    # SERVE?        <<<---
+#                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -165,8 +176,7 @@ class Auction(Application):
                     TxnField.amount: amount,
                     TxnField.fee: MIN_FEE,
                     TxnField.close_remainder_to: Global.creator_address(),
-#                    TxnField.fee: Global.min_txn_fee,
-#                    TxnField.rekey_to: Global.zero_address()
+#                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -198,6 +208,8 @@ class Auction(Application):
     @internal(TealType.none)
     def do_opt_in(self, asset_id):
         return self.do_axfer(self.address, asset_id, Int(0))
+
+
 
 if __name__ == "__main__":
     Auction().dump("artifacts")
