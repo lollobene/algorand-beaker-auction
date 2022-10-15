@@ -1,7 +1,7 @@
 # G1
 # Goal of the Project
 ## Problem
-Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager. The e-auction managers may be dishonest and, according to the auction rules, favour or penalise some auction participants. A solution to this trust problem, which is requiring the participants to trust a possibly dishonest third party, consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) the trusted third party. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
+Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) the trusted third party. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 This seems a convincing solution to the trust problem, however, making transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms.
 
 
@@ -68,7 +68,7 @@ python auction.py
 **Relevant Smart Contracts, Papers
 Posts in the developer portal ...**
 
-E-commerce activities has become part of everyone daily life, a consequence of the popularity of the Internet. One of the most popular e-commerce activities are e-auctions, where the auction participants can send their bid the products over the Internet [1]. However, most of the 
+E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid the products over the Internet [1]. However, most of the 
 
 # Technical Challenges
 Beyond the state of the art
