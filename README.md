@@ -1,5 +1,79 @@
-# Smart contract for auction
+# G1
+# Goal of the Project
+## Problem
+Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) the trusted third party. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
+This seems a convincing solution to the trust problem, however, making transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms.
 
+
+
+
+## Solution 
+Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with blinded bids via the use of commitments.
+
+Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we implemented an architecture which puts into communication the Algorand and Ethereum blockchains. In particular we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc, otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+
+
+# Smart Contract Specifications
+**Requirements, Use cases, Functions ...
+**
+## Development Environment
+
+### Install Sandbox
+
+Install the [sandbox](https://github.com/algorand/sandbox) to start a local private node and start it with the `dev` configuration.
+
+If you're in the sandbox directory run:
+
+```bash
+./sandbox up dev
+```
+
+### Clone repository
+
+Next, clone this repository and cd to the root directory.
+
+### Setup Virtual Environment
+
+Create a virtual environment inside the project directory. 
+#### This project requires Python 3.10.
+
+```bash
+python3 -m venv venv
+```
+
+Activate virtual environment.
+
+```bash
+source ./venv/bin/activate
+```
+
+requirements.txt file contains all of the required dependencies and packages. Install them in your virtual environment by running:
+
+```bash
+pip install -r requirements.txt
+```
+
+Check all dependencies and packages install in your virtual environment by running:
+
+```bash
+pip list
+```
+
+Run the client from auction directory
+```bash
+python auction.py
+```
+
+# State of the Art
+**Relevant Smart Contracts, Papers
+Posts in the developer portal ...**
+
+E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid the products over the Internet [1]. However, most of the 
+
+# Technical Challenges
+Beyond the state of the art
+
+# Future Works
 We will refer to the user who want to sell an object using the auction smart contract with the name "seller".
 When the seller wants to sell something it must open an auction.
 The users who are willing to buy that object are referred to as "bidders" or "participants" and must send a bid to the smart contract according to the smart contract rules.
@@ -66,50 +140,15 @@ The workflow is the following:
 - the winner `w` discloses its secret `s_w` (which is bounded to its Ethereum public key via the function `h_w` that it previously used) and becomes the owner of the asset.
 - the seller uses the secret  `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain.
 
-## Development Environment
 
-### Install Sandbox
 
-Install the [sandbox](https://github.com/algorand/sandbox) to start a local private node and start it with the `dev` configuration.
 
-If you're in the sandbox directory run:
 
-```bash
-./sandbox up dev
-```
 
-### Clone repository
 
-Next, clone this repository and cd to the root directory.
+## Bibliography
+[1]Chen, Yi-Hui, Shih-Hsin Chen, and Iuon-Chang Lin. "Blockchain based smart contract for bidding system." 2018 IEEE International Conference on Applied System Invention (ICASI). IEEE, 2018.
 
-### Setup Virtual Environment
+[2]Omar, Ilhaam A., et al. "Implementing decentralized auctions using blockchain smart contracts." Technological Forecasting and Social Change 168 (2021): 120786.
 
-Create a virtual environment inside the project directory. 
-#### This project requires Python 3.10.
-
-```bash
-python3 -m venv venv
-```
-
-Activate virtual environment.
-
-```bash
-source ./venv/bin/activate
-```
-
-requirements.txt file contains all of the required dependencies and packages. Install them in your virtual environment by running:
-
-```bash
-pip install -r requirements.txt
-```
-
-Check all dependencies and packages install in your virtual environment by running:
-
-```bash
-pip list
-```
-
-Run the client from auction directory
-```bash
-python auction.py
-```
+[3]
