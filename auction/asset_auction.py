@@ -144,7 +144,7 @@ class Auction(Application):
                 {
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
-                    TxnField.amount: amount,
+                    TxnField.amount: amount - Global.min_txn_fee(),
                     TxnField.fee: Int(0),
 #                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
 #                    TxnField.close_remainder_to: Global.zero_address(),
