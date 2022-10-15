@@ -1,13 +1,13 @@
 # G1
 # Goal of the Project
-##Problem
+## Problem
 Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager. The e-auction managers may be dishonest and, according to the auction rules, favour or penalise some auction participants. A solution to this trust problem, which is requiring the participants to trust a possibly dishonest third party, consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) the trusted third party. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 This seems a convincing solution to the trust problem, however, making transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms.
 
 
 
 
-##Solution 
+## Solution 
 Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with blinded bids via the use of commitments.
 
 Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we implemented an architecture which puts into communication the Algorand and Ethereum blockchains. In particular we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc, otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
