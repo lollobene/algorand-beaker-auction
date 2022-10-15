@@ -14,7 +14,55 @@ Moreover, in order to augment the interoperability between blockchains and to al
 
 
 # Smart Contract Specifications
-Requirements, Use cases, Functions ...
+**Requirements, Use cases, Functions ...
+**
+## Development Environment
+
+### Install Sandbox
+
+Install the [sandbox](https://github.com/algorand/sandbox) to start a local private node and start it with the `dev` configuration.
+
+If you're in the sandbox directory run:
+
+```bash
+./sandbox up dev
+```
+
+### Clone repository
+
+Next, clone this repository and cd to the root directory.
+
+### Setup Virtual Environment
+
+Create a virtual environment inside the project directory. 
+#### This project requires Python 3.10.
+
+```bash
+python3 -m venv venv
+```
+
+Activate virtual environment.
+
+```bash
+source ./venv/bin/activate
+```
+
+requirements.txt file contains all of the required dependencies and packages. Install them in your virtual environment by running:
+
+```bash
+pip install -r requirements.txt
+```
+
+Check all dependencies and packages install in your virtual environment by running:
+
+```bash
+pip list
+```
+
+Run the client from auction directory
+```bash
+python auction.py
+```
 
 # State of the Art
 **Relevant Smart Contracts, Papers
@@ -25,7 +73,7 @@ E-commerce activities has become part of everyone daily life, a consequence of t
 # Technical Challenges
 Beyond the state of the art
 
-#Future Works
+# Future Works
 We will refer to the user who want to sell an object using the auction smart contract with the name "seller".
 When the seller wants to sell something it must open an auction.
 The users who are willing to buy that object are referred to as "bidders" or "participants" and must send a bid to the smart contract according to the smart contract rules.
@@ -95,56 +143,10 @@ The workflow is the following:
 
 
 
-## Development Environment
-
-### Install Sandbox
-
-Install the [sandbox](https://github.com/algorand/sandbox) to start a local private node and start it with the `dev` configuration.
-
-If you're in the sandbox directory run:
-
-```bash
-./sandbox up dev
-```
-
-### Clone repository
-
-Next, clone this repository and cd to the root directory.
-
-### Setup Virtual Environment
-
-Create a virtual environment inside the project directory. 
-#### This project requires Python 3.10.
-
-```bash
-python3 -m venv venv
-```
-
-Activate virtual environment.
-
-```bash
-source ./venv/bin/activate
-```
-
-requirements.txt file contains all of the required dependencies and packages. Install them in your virtual environment by running:
-
-```bash
-pip install -r requirements.txt
-```
-
-Check all dependencies and packages install in your virtual environment by running:
-
-```bash
-pip list
-```
-
-Run the client from auction directory
-```bash
-python auction.py
-```
 
 
-##Bibliography
+
+## Bibliography
 [1]Chen, Yi-Hui, Shih-Hsin Chen, and Iuon-Chang Lin. "Blockchain based smart contract for bidding system." 2018 IEEE International Conference on Applied System Invention (ICASI). IEEE, 2018.
 [2]Omar, Ilhaam A., et al. "Implementing decentralized auctions using blockchain smart contracts." Technological Forecasting and Social Change 168 (2021): 120786.
 [3]
