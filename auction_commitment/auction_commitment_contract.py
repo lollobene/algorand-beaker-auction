@@ -70,8 +70,6 @@ class Auction(Application):
         max_keys=8,
     )
 
-
-
     ##############
     # Administrative actions
     ##############
@@ -183,7 +181,6 @@ class Auction(Application):
             ), comment="payment"),
 
             Log(Sha256(Itob(payment.amount()))),
-            self.pay_bidder(Txn.sender(), self.deposit.get()),
 
             self.commitment[old_k][payment.sender()].delete(),
             self.open_commitment[new_k][payment.sender()].set(payment.amount()),
@@ -191,16 +188,18 @@ class Auction(Application):
                 payment.amount() >= self.highest_bid.get()
             ).Then(
                 Seq(
-                    If(self.highest_bidder != Global.zero_address()).
-                    Then(
+                    self.pay_bidder(Txn.sender(), self.deposit.get()),
+                    If(self.highest_bidder != Global.zero_address())
+                    .Then(
                         self.pay_bidder(self.highest_bidder.get(), self.highest_bid.get())
                     ),
                     self.highest_bidder.set(Txn.sender()),
                     self.highest_bid.set(payment.amount()),
                     Approve()
                 )
-            ),
-            Reject()
+            ).Else(
+                self.pay_bidder(Txn.sender(), self.deposit.get() + payment.amount())
+            )
         )
 
 
@@ -217,8 +216,19 @@ class Auction(Application):
 
         return Seq(
             Assert(Global.latest_timestamp() > auction_end),
-            self.do_aclose(highest_bidder, self.nft_id, Int(1)),
-            self.pay_owner(owner, highest_bid)
+            If(self.highest_bidder == Global.zero_address())
+            .Then(
+                Seq(
+                    self.do_aclose(owner, self.nft_id, Int(1)),
+                    self.pay_owner(owner, highest_bid)
+                )
+            )
+            .Else(
+                Seq(
+                    self.do_aclose(highest_bidder, self.nft_id, Int(1)),
+                    self.pay_owner(owner, highest_bid)
+                )
+            )
         )
 
     ##############
