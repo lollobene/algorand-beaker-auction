@@ -5,17 +5,19 @@
 # G1
 # E-auction Smart Contract (implemented in Beaker)
 ## Problem
+We want to implement a decentralised auction service in order to avoid that the seller and the auction participants must trust a centralised auctioneer that can deviate from the auction rules.
+A reasonable solution to this trust problem consists into implementing a smart contract which resides on a public blockchain platform. The blockchain, and in particular the smart contract, impersonates the trusted third party, the auctioneer, therefore choosing the right blockchain platform is a core problem in a solution design. In fact different blockchain platforms have different characteristics (such as block finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different kind of smart contract for auctions. When the assets which are going to be sold using the auction process lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction consists into using a smart contract which lives in the same blockchain. However, in some cases it would be more profitable for the seller and auction participants to perform an auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
 
-
-This seems a reasonable solution to the trust problem and choosing the right blockchain platform to impersonate the trusted third party is the core of the problem, in fact different blockchain platforms have different characteristics (such as blockk finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different auction systems. When the assets which are going to be sold using the auction process lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction would be to use a smart contract which lives in the same blockchain. However, in some cases it would be more profitable for the seller and auction participants to perform and auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
-
-Below we present our solution to the problem following problem: implementing a smart contract which manages auctions on the Algorand blockchain which can be used to sell assets which live on Ethereum. 
+Below we present our solution to the following problems: 
+1) implementing a smart contract in Beaker which manages auctions on the Algorand blockchain 
+2) design the necessary infrastructure to sell assets which live on Ethereum using the same Algorand smart contract. 
 
 ## Solution 
 Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with blinded bids via the use of commitments.
 
 Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we implemented an architecture which puts into communication the Algorand and Ethereum blockchains. In particular we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc, otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
 
+-- copia la descrizione da future works se ce la si fa... --
 
 # Smart Contract Specifications
 **Requirements, Use cases, Functions ...
