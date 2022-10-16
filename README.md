@@ -3,13 +3,13 @@
 
 2)
 # G1
-# Goal of the Project
+# E-auction Smart Contract (implemented in Beaker)
 ## Problem
-Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) the trusted third party. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
-This seems a convincing solution to the trust problem, however, making transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms.
 
 
+This seems a reasonable solution to the trust problem and choosing the right blockchain platform to impersonate the trusted third party is the core of the problem, in fact different blockchain platforms have different characteristics (such as blockk finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different auction systems. When the assets which are going to be sold using the auction process lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction would be to use a smart contract which lives in the same blockchain. However, in some cases it would be more profitable for the seller and auction participants to perform and auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
 
+Below we present our solution to the problem following problem: implementing a smart contract which manages auctions on the Algorand blockchain which can be used to sell assets which live on Ethereum. 
 
 ## Solution 
 Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with blinded bids via the use of commitments.
@@ -73,7 +73,9 @@ python auction.py
 Posts in the developer portal ...**
 https://github.com/avolabs-io/nft-auction Ethereum flexible auction
 
-E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid the products over the Internet [1]. However, most of the 
+E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [1]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into making blockchain platforms that allow the implementation of smart contracts (such as Ethereum, Algorand,...) **the trusted third party**. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
+
+Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
 
 # Technical Challenges
 Beyond the state of the art
@@ -84,16 +86,14 @@ When the seller wants to sell something it must open an auction.
 The users who are willing to buy that object are referred to as "bidders" or "participants" and must send a bid to the smart contract according to the smart contract rules.
 
 ## Features:
-We present a smart contract which allows the blockchain users to create and customize an auction. 
+We present a smart contract which allows the blockchain users to create and customize an auction.
+We already have created two smart contracts that allow the seller to:
 
-### Bidding visibility:
-The seller may:
-
-1.  require the bids to be public and accessible to anyone as soon as they are sent to the smart contract;
+1. require the bids to be public and accessible to anyone as soon as they are sent to the smart contract;
 2. require the bids to be committed to in a way that once the bidding process ends, the bidders open their commitment and the winner is revealed.
 
 
-
+In future we would implement
 ### Auction participants
 
 1. the auction is accessible to anyone in the network: there is no control on the accounts that send bids to the smart contract.
@@ -152,8 +152,8 @@ The workflow is the following:
 
 
 ## Bibliography
-[1]Chen, Yi-Hui, Shih-Hsin Chen, and Iuon-Chang Lin. "Blockchain based smart contract for bidding system." 2018 IEEE International Conference on Applied System Invention (ICASI). IEEE, 2018.
+[1] Chen, Yi-Hui, Shih-Hsin Chen, and Iuon-Chang Lin. "Blockchain based smart contract for bidding system." 2018 IEEE International Conference on Applied System Invention (ICASI). IEEE, 2018.
 
-[2]Omar, Ilhaam A., et al. "Implementing decentralized auctions using blockchain smart contracts." Technological Forecasting and Social Change 168 (2021): 120786.
+[2] Omar, Ilhaam A., et al. "Implementing decentralized auctions using blockchain smart contracts." Technological Forecasting and Social Change 168 (2021): 120786.
 
-[3]
+[3] Mogavero, Francesco, et al. "The Blockchain Quadrilemma: When Also Computational Effectiveness Matters." 2021 IEEE Symposium on Computers and Communications (ISCC). IEEE, 2021.
