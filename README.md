@@ -1,3 +1,7 @@
+# To be included in the discussion
+1) Algorand guarantees instant finalization so the oracle can share the information straight away. Ethereum does not have this property.. Think about it..
+
+2)
 # G1
 # Goal of the Project
 ## Problem
@@ -67,6 +71,7 @@ python auction.py
 # State of the Art
 **Relevant Smart Contracts, Papers
 Posts in the developer portal ...**
+https://github.com/avolabs-io/nft-auction Ethereum flexible auction
 
 E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid the products over the Internet [1]. However, most of the 
 
