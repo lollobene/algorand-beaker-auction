@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract NFTLocker {
 
-  bool internal locked;
+  string public name = "NFT Locker";
 
   address public owner;
   address public winner;
@@ -25,7 +25,7 @@ contract NFTLocker {
      _;
   }
 
-  function Lock(address token, uint256 tokenId, uint256 _releaseTime) external  {
+  function lock(address token, uint256 tokenId, uint256 _releaseTime) external  {
     require(IERC721(token).getApproved(tokenId) == address(this), "Locker Contract Not Approved.");
     require(releaseTime == 0, "Token already locked");
     releaseTime = _releaseTime;
@@ -39,7 +39,7 @@ contract NFTLocker {
     emit Winner(_winner);
   }
 
-  function Unlock(address token, uint256 tokenId) external {
+  function unlock(address token, uint256 tokenId) external {
     require(block.timestamp > releaseTime, "Too early to unlock.");
     require(msg.sender == winner, "You are not the winner.");
     winner = address(0);

@@ -6,7 +6,7 @@ async function approve(from, to, tokenId) {
 
 async function lockNFT(from, nftAddress, tokenId, releaseTime) {
   return await NFTLocker.methods
-    .Lock(nftAddress, tokenId, releaseTime)
+    .lock(nftAddress, tokenId, releaseTime)
     .send({ from: from });
 }
 
@@ -16,7 +16,7 @@ async function setWinner(from, winnerAddres) {
 
 async function unlockNFT(from, nftAddress, tokenId) {
   return await NFTLocker.methods
-    .Unlock(nftAddress, tokenId)
+    .unlock(nftAddress, tokenId)
     .send({ from: from });
 }
 
