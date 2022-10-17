@@ -4,7 +4,8 @@ from pyteal import *
 #import os
 #import json
 
-MIN_FEE = Int(1000)                                     # minimum fee on Algorand is currently 1000 microAlgos
+MIN_FEE = Int(1000)                                          # minimum fee on Algorand is currently 1000 microAlgos
+
 
 class Auction(Application):
 
@@ -68,12 +69,13 @@ class Auction(Application):
     def create(self):
         return self.initialize_application_state()
 
+
     ##############
     # Start auction
     ##############
 
     @external(authorize = Authorize.only(owner))
-    def setup(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, nft: abi.Asset, start_offset : abi.Uint64, duration: abi.Uint64):
+    def setup(self, payment: abi.PaymentTransaction, starting_price: abi.Uint64, nft: abi.Asset, start_offset: abi.Uint64, duration: abi.Uint64):
         payment = payment.get()
         return Seq(
             # Set global state
@@ -85,9 +87,9 @@ class Auction(Application):
                 And(
                     Global.latest_timestamp() < self.auction_start.get(),
                     self.auction_start.get() < self.auction_end.get(),
-                    #payment.type_enum() == TxnType.Payment,                                    # SERVE?        <<<---
-                    #payment.sender() == Txn.sender(),                                          # SERVE?        <<<---
-                    #payment.receiver() == Global.current_application_address(),                # SERVE?        <<<---
+                    payment.type_enum() == TxnType.Payment,
+                    payment.sender() == Txn.sender(),
+                    payment.receiver() == Global.current_application_address(),
                     #payment.close_remainder_to() == Global.zero_address(),                     # SERVE?        <<<---
                     #payment.rekey_to: Global.zero_address()                                    # SERVE?        <<<---
                 )
@@ -108,10 +110,9 @@ class Auction(Application):
         highest_bid = self.highest_bid.get()
 
         return Seq(
-            Assert(Global.latest_timestamp() < auction_end),
-            # Verify payment transaction
             Assert(                                                                 # CHIAMARE PIU' ASSERT E' COSTOSO?  <<<---
                 And(
+                    Global.latest_timestamp() < auction_end,
                     payment.amount() > highest_bid,
                     Txn.sender() == payment.sender()
                 )
@@ -141,8 +142,9 @@ class Auction(Application):
             self.pay_owner(owner, highest_bid)
         )
 
+
     ##############
-    # Smart Contract payment functions
+    # Smart Contract inner transactions
     ##############
 
     # Refund previous bidder
@@ -156,13 +158,14 @@ class Auction(Application):
                     TxnField.receiver: receiver,
                     TxnField.amount: amount - Global.min_txn_fee(),
                     TxnField.fee: Int(0),
-#                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
+#                    TxnField.fee: MIN_FEE,                                 #it seems to be a bit more expensive if set
 #                    TxnField.close_remainder_to: Global.zero_address(),                    # SERVE?        <<<---
 #                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
         )
+
 
     # Send total amount of smart contract back to the owner and close the account
     @internal(TealType.none)
@@ -175,6 +178,7 @@ class Auction(Application):
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
                     TxnField.fee: MIN_FEE,
+#                    TxnField.fee: Int(0),
                     TxnField.close_remainder_to: Global.creator_address(),
 #                    TxnField.rekey_to: Global.zero_address()                               # SERVE?        <<<---
                 }
@@ -182,6 +186,14 @@ class Auction(Application):
             InnerTxnBuilder.Submit()
         )
 
+
+    # Asset opt-in for the smart contract
+    @internal(TealType.none)
+    def do_opt_in(self, asset_id):
+        return self.do_axfer(self.address, asset_id, Int(0))        
+
+
+    # Asset transfer to the smart contract
     @internal(TealType.none)
     def do_axfer(self, receiver, asset_id, amount):
         return InnerTxnBuilder.Execute(
@@ -190,24 +202,31 @@ class Auction(Application):
                 TxnField.xfer_asset: asset_id,
                 TxnField.asset_amount: amount,
                 TxnField.asset_receiver: receiver,
-                TxnField.fee: MIN_FEE,
+                TxnField.fee: MIN_FEE
             }
         )
 
+
+    # Asset close out from the smart contract to the receiver
     @internal(TealType.none)
     def do_aclose(self, receiver, asset_id, amount):
         return InnerTxnBuilder.Execute(
             {
                 TxnField.type_enum: TxnType.AssetTransfer,
                 TxnField.xfer_asset: asset_id,
-                TxnField.asset_close_to: receiver,
+                TxnField.asset_amount: amount,
+                TxnField.asset_receiver: receiver,
                 TxnField.fee: MIN_FEE,
+                TxnField.asset_close_to: receiver
             }
         )
 
-    @internal(TealType.none)
-    def do_opt_in(self, asset_id):
-        return self.do_axfer(self.address, asset_id, Int(0))
+
+    # Reject updates
+#    @update(TealType.none)
+#    def update_contract(self):
+#        return Reject()
+
 
 
 

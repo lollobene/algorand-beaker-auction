@@ -9,8 +9,7 @@ import time
 from auction_commitment_contract import Auction
 from util import *
 from hashlib import sha256
-
-import test_auction
+#import test_auction_commitment
 
 
 MIN_FEE = 1000                                              # minimum fee on Algorand is currently 1000 microAlgos
@@ -32,19 +31,18 @@ addr3, sk3, signer3 = acct3.address, acct3.private_key, acct3.signer
 print("\nAccount n.3:", addr3)
 print("Address Secret key =", sk3)
 
-# get sandbox client
-client = get_algod_client()
 
 # Auction settings
-#startTime = int(time()) + 10            # start time is 10 seconds in the future
 offset = 10                             # start time is 10 seconds in the future
-length = 160                             # auction duration
-commitment_length = 100
-##commitTime = startTime + 10
-##endTime = start_offset + duration       # end time is 60 seconds after start
+commitment_length = 100                 # commitment duration
+auction_length = 160                    # auction duration
 reserve = 1*consts.algo                 # 1 Algo
 #increment = 100000                      # 0.1 Algo
 #deposit = 100000                        # 0.1 Algo (minimum balance)                #CHECK (POCO?)  <<<---
+
+
+# get sandbox client
+client = get_algod_client()
 
 # Create an Application client containing both an algod client and my app
 app_client = ApplicationClient(client, Auction(), signer = owner_sign)
@@ -56,26 +54,27 @@ def demo():
     tx_params = client.suggested_params()
 #    tx_params.first =
 #    tx_params.last =
-#    tx_params.gh = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="         #TO BE VALIDATED ONCE ON release NETWORK (MainNet)
+#    tx_params.gh = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="         #TO BE VALIDATED ONCE ON TestNet NETWORK
 #    tx_params.flat_fee = True
-#    tx_params.fee = 1*consts.milli_algo                                    # minimum fee on Algorand is currently 1000 microAlgos
 #    tx_params.fee = MIN_FEE
 #    tx_params.min_fee = MIN_FEE
 
     
-    ##############
-    # NFT CREATION
-    ##############
+    print("\n**********************************")
+    print("NFT CREATION")
+    print("**********************************\n")
 
-    nft = create_asset(owner_addr, owner_sk, "dummyNFT")
+    nft = create_asset(client, owner_addr, owner_sk, "dummyNFT")
+    print_created_asset(client, owner_addr, nft)
+    print_asset_holding(client, owner_addr, nft)
+    print_balances(client, app_addr, owner_addr, addr2, addr3)
 
 
-    ##############
-    # APP CREATION
-    ##############
+    print("\n\n**********************************")
+    print("SMART CONTRACT CREATION AND DEPLOYMENT")
+    print("**********************************\n")
 
     # Create the applicatiion on chain, set the app id for the app client
-    print("\nCREATING AND DEPLOYING THE SMART CONTRACT...")
     try:
         app_id, app_addr, txid = app_client.create()
 
@@ -84,10 +83,11 @@ def demo():
 
     print(f"Created App with id: {app_id} and address: {app_addr} in tx: {txid}\n")
     print(f"Current app state: {app_client.get_application_state()}")
+    print_balances(client, app_addr, owner_addr, addr2, addr3)
+
 
     # Fund the app account with 1 algo (by the owner)
     app_client.fund(1*consts.algo)
-
     print_balances(app_addr, owner_addr, addr2, addr3)
 
 
@@ -188,7 +188,7 @@ def demo():
         print(f"\n{e}\n")
 
     # for res in result.tx_ids:
-    #    print(res)        
+    #    print(res)
 
     print(f"Current app state: {app_client.get_application_state()}")
     print(f"Current account state: {bidder_client.get_account_state()}")
@@ -376,6 +376,6 @@ def create_asset(addr, pk, unitname):
 
 
 if __name__ == "__main__":
-#    test_auction
+#    test_auction_commitment
     demo()
     

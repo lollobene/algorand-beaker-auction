@@ -4,26 +4,41 @@ import pytest
 from algosdk.atomic_transaction_composer import (
 #    AtomicTransactionComposer,
     TransactionWithSigner,
-#    AccountTransactionSigner,
+    AccountTransactionSigner,
 )
 from algosdk.future import transaction
 #from algosdk.v2client.algod import AlgodClient
 from algosdk.encoding import encode_address, decode_address
 from beaker import client, sandbox, testing
-#from beaker.client.application_client import ApplicationClient
-#from beaker.sandbox import get_algod_client, get_accounts
-#from beaker.client.logic_error import LogicException
+from beaker.client import ApplicationClient
+from beaker.sandbox import get_algod_client, get_accounts
+from beaker.client.logic_error import LogicException
 from beaker import *
 from algosdk import transaction
 from asset_auction import Auction
 
 MIN_FEE = 1000
 
-#algod_client: AlgodClient = sandbox.get_algod_client()
 
-##############
+# Take accounts from sandbox
+accts = get_accounts()
+acct1 = accts.pop()                                         # smart contract creator (derived from sandbox accounts)
+owner_addr, owner_sk, owner_sign = acct1.address, acct1.private_key, acct1.signer
+acct2 = accts.pop()                                         # 1st user account (derived from sandbox accounts)
+addr2, sk2, signer2 = acct2.address, acct2.private_key, acct2.signer
+acct3 = accts.pop()                                         # 2st user account (derived from sandbox accounts)
+addr3, sk3, signer3 = acct3.address, acct3.private_key, acct3.signer
+
+# get sandbox client
+client = get_algod_client()
+
+# Create an Application client containing both an algod client and my app
+#app_client = ApplicationClient(client, Auction(), signer = owner_sign)
+
+
+######################
 # app creation test
-##############
+######################
 
 @pytest.fixture(scope = "module")
 def create_app():
@@ -31,50 +46,48 @@ def create_app():
     global creator_acct
     global app_client
     accounts = sorted(
-        sandbox.get_accounts(),
-        key = lambda a: sandbox.clients.get_algod_client().account_info(a.address)["amount"]
+        accts,
+        key = lambda a: client.account_info(a.address)["amount"]
     )
 
     creator_acct = accounts.pop()
 
     app_client = client.ApplicationClient(
-        client = sandbox.get_algod_client(),
-        app = Auction(version=6),
+        client = client,
+        app = Auction(version = 6),
         signer = creator_acct.signer,
     )
 
     app_client.create()
-#    app_id, app_addr, txid = app_client.create()
 
-##############
-# start auction test
-##############
 
+######################
+# auction setup test
+######################
+""""
 @pytest.fixture(scope = "module")
-def start_auction():
+def auction_setup():
     sp = app_client.get_suggested_params()
     pay_txn = TransactionWithSigner(
         txn = transaction.PaymentTxn(
             sender = creator_acct.address,
             receiver = app_client.app_addr,
-            amt = 1000000,
+            amt = 1*consts.algo,
             fee = sp.fee,
-            first = sp.first,                               #????           <<<---
-            last = sp.last,                                 #????           <<<---
-            gh = sp.gh,                                     #????           <<<---
+#            gh = sp.gh                                 #TO BE VALIDATED ONCE ON TestNet NETWORK
         ),
-        signer = creator_acct.signer,
+        signer = creator_acct.signer
     )
 
-    app_client.call(Auction.start_auction, payment=pay_txn, starting_price = 1000000, length = 60)
-#    app_client.call(Auction.start_auction, payment=pay_txn, starting_price = 10_000, length = 36_000)
+    app_client.call(Auction.setup, payment = pay_txn, starting_price = 1*consts.algo, length = 120)
 
-##############
-# first bid test
-##############
+
+######################
+# first account: first bid test
+######################
 
 @pytest.fixture(scope = "module")
-def send_first_bid():
+def send_first_bid_first_addr():
     global first_bidder
     first_bidder = accounts.pop()
     sp = app_client.get_suggested_params()
@@ -82,20 +95,67 @@ def send_first_bid():
         txn = transaction.PaymentTxn(
             sender = first_bidder.address,
             receiver = app_client.app_addr,
-            amt = 2000000,
+            amt = 2*consts.algo,
             fee = sp.fee,
-            first = sp.first,                               #????           <<<---
-            last = sp.last,                                 #????           <<<---
-            gh = sp.gh,                                     #????           <<<---
+#            gh = sp.gh                                  #TO BE VALIDATED ONCE ON TestNet NETWORK
         ),
-        signer = first_bidder.signer,
+        signer = first_bidder.signer
     )
 
     app_client.call(Auction.bid, payment = pay_txn, previous_bidder = first_bidder.address, signer = first_bidder.signer)
 
-##############
-# second bid test
-##############
+
+######################
+# second account: first bid test
+######################
+
+@pytest.fixture(scope = "module")
+def send_first_bid_second_addr():
+    global second_bidder
+    global first_bidder_amount
+    second_bidder = accounts.pop()
+    sp = app_client.get_suggested_params()
+    first_bidder_amount = app_client.client.account_info(first_bidder.address)["amount"]
+    pay_txn = TransactionWithSigner(
+        txn = transaction.PaymentTxn(
+            sender = second_bidder.address,
+            receiver = app_client.app_addr,
+            amt = 3*consts.algo,
+            fee = sp.fee,
+            gh = sp.gh                                  #TO BE VALIDATED ONCE ON TestNet NETWORK
+        ),
+        signer = second_bidder.signer
+    )
+
+    app_client.call(Auction.bid, payment = pay_txn, previous_bidder = first_bidder.address, signer = second_bidder.signer)
+
+
+######################
+# first account: second bid test
+######################
+
+@pytest.fixture(scope = "module")
+def send_second_bid_first_addr():
+    global first_bidder
+    first_bidder = accounts.pop()
+    sp = app_client.get_suggested_params()
+    pay_txn = TransactionWithSigner(
+        txn = transaction.PaymentTxn(
+            sender = first_bidder.address,
+            receiver = app_client.app_addr,
+            amt = 2*consts.algo,
+            fee = sp.fee,
+#            gh = sp.gh                                  #TO BE VALIDATED ONCE ON TestNet NETWORK
+        ),
+        signer = first_bidder.signer
+    )
+
+    app_client.call(Auction.bid, payment = pay_txn, previous_bidder = first_bidder.address, signer = first_bidder.signer)
+
+
+######################
+# second account: first bid test
+######################
 
 @pytest.fixture(scope = "module")
 def send_second_bid():
@@ -108,17 +168,15 @@ def send_second_bid():
         txn = transaction.PaymentTxn(
             sender = second_bidder.address,
             receiver = app_client.app_addr,
-            amt = 2000000,
-#            fee = sp.fee,
-            fee = MIN_FEE*2,                                #????           <<<---
-            first = sp.first,                               #????           <<<---
-            last = sp.last,                                 #????           <<<---
-            gh = sp.gh,                                     #????           <<<---
+            amt = 3*consts.algo,
+            fee = sp.fee,
+            gh = sp.gh                                  #TO BE VALIDATED ONCE ON TestNet NETWORK
         ),
-        signer = second_bidder.signer,
+        signer = second_bidder.signer
     )
 
     app_client.call(Auction.bid, payment = pay_txn, previous_bidder = first_bidder.address, signer = second_bidder.signer)
+
 
 ##############
 # end auction test
@@ -154,6 +212,7 @@ def end_auction():
 
     app_client.call(Auction.end_auction, payment = txn)
 
+"""
 
 ##############
 # create tests
@@ -161,7 +220,7 @@ def end_auction():
 
 @pytest.mark.create
 def test_create_owner(create_app):                                              # CHECK: PARAMETRO create_app NON CARICATO  <<<---
-    addr = bytes.fromhex(app_client.get_application_state()["governor"])
+    addr = bytes.fromhex(app_client.get_application_state()["owner"])
     assert encode_address(addr) == creator_acct.address
 
 @pytest.mark.create
@@ -176,8 +235,9 @@ def test_create_highest_bid(create_app):                                        
 def test_create_auction_end(create_app):                                        # CHECK: PARAMETRO create_app NON CARICATO  <<<---
     assert app_client.get_application_state()["auction_end"] == 0
 
+"""
 #####################
-# start_auction tests
+# auction setup tests
 #####################
 
 @pytest.mark.start_auction
@@ -231,20 +291,19 @@ def test_second_bid_app_balance(create_app, start_auction, send_first_bid, send_
 #    assert (app_client.client.account_info(app_client.app_addr)["amount"] == 30_000 + 100_000)
     assert (app_client.client.account_info(app_client.app_addr)["amount"] == 3000000 + 1000000)
 
+"""
 
 
 
+@pytest.fixture(scope = "session")
+def creator_acct() -> tuple[str, str, AccountTransactionSigner]:
+    return accts[0].address, accts[0].private_key, accts[0].signer
 
 
-
-#@pytest.fixture(scope="session")
-#def creator_acct() -> tuple[str, str, AccountTransactionSigner]:
-#    return accts[0].address, accts[0].private_key, accts[0].signer
-
-
-#@pytest.fixture(scope="session")
-#def user_acct() -> tuple[str, str, AccountTransactionSigner]:
-#    return accts[1].address, accts[1].private_key, accts[1].signer                      #for loop for many users?   <<<---
+@pytest.fixture(scope = "session")
+def user_acct() -> tuple[str, str, AccountTransactionSigner]:
+    for i in range(len(accts) - 1):
+        return accts[i+1].address, accts[i+1].private_key, accts[i+1].signer
 
 
 #@pytest.fixture(scope="session")
@@ -294,53 +353,3 @@ def test_second_bid_app_balance(create_app, start_auction, send_first_bid, send_
 #    assert actual_algos - expected_algos <= micro_algos_tolerance
 
 #app_algo_balance: typing.Final = int(1e7)
-
-
-#def test_app_fund(creator_app_client: ApplicationClient):
-#    app_addr, addr, signer = (
-#        creator_app_client.app_addr,
-#        creator_app_client.sender,
-#        creator_app_client.signer,
-#    )
-
-#    pool_asset, a_asset, b_asset = _get_tokens_from_state(creator_app_client)
-
-#    assert addr
-#    _opt_in_to_token(addr, signer, pool_asset)
-
-#    balance_accts = [app_addr, addr]
-#    balances_before = testing.get_balances(creator_app_client.client, balance_accts)
-
-#    a_amount = 10000
-#    b_amount = 3000
-
-#    sp = creator_app_client.client.suggested_params()
-#    creator_app_client.call(
-#        ConstantProductAMM.mint,
-#        suggested_params=minimum_fee_for_txn_count(sp, 2),
-#        a_xfer=TransactionWithSigner(
-#            txn=transaction.AssetTransferTxn(addr, sp, app_addr, a_amount, a_asset),
-#            signer=signer,
-#        ),
-#        b_xfer=TransactionWithSigner(
-#            txn=transaction.AssetTransferTxn(addr, sp, app_addr, b_amount, b_asset),
-#            signer=signer,
-#        ),
-#        pool_asset=pool_asset,
-#        a_asset=a_asset,
-#        b_asset=b_asset,
-#    )
-
-#    balances_after = testing.get_balances(creator_app_client.client, balance_accts)
-#    balance_deltas = testing.get_deltas(balances_before, balances_after)
-
-#    assert balance_deltas[app_addr][a_asset] == a_amount
-#    assert balance_deltas[app_addr][b_asset] == b_amount
-#    assert_app_algo_balance(creator_app_client, app_algo_balance)
-
-#    expected_pool_tokens = int((a_amount * b_amount) ** 0.5 - ConstantProductAMM._scale)
-#    assert balance_deltas[addr][pool_asset] == expected_pool_tokens
-
-#    ratio = _get_ratio_from_state(creator_app_client)
-#    expected_ratio = int((a_amount * ConstantProductAMM._scale) / b_amount)
-#    assert ratio == expected_ratio

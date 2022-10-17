@@ -8,8 +8,7 @@ from beaker.sandbox import get_accounts, get_algod_client
 from beaker.client import ApplicationClient
 from beaker.client.logic_error import LogicException
 import time
-from auction import Auction
-import test_auction
+from auction_old import Auction
 
 
 MIN_FEE = 1000                                              # minimum fee on Algorand is currently 1000 microAlgos
@@ -217,6 +216,5 @@ def print_balances(app: str, addr1: str, addr2: str, addr3: str):
 
 
 if __name__ == "__main__":
-#    test_auction
     demo()
     
