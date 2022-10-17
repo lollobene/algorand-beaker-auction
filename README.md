@@ -87,13 +87,12 @@ python auction.py
 ```
 
 # State of the Art
-**Relevant Smart Contracts, Papers
-Posts in the developer portal ...**
-
 
 E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as "the trusted third party" blockchain platforms that support the creation of smart contracts, such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 
 In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the **notarized bidding** is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The **deposited bidding** requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids. The **committed bidding** auction aims to hide in a first moment the participants bidded amount and to let them reveal it only once the bidding time has expired. The smart contract verifies that the revealed amount corresponds with the committed one and assigns the ownership of the asset to the participant who committed to and opened the highest bid. Finally **confidential bidding** allows the participants to encrypt their bids using the public key of the auctioneer so that at the end of the auction the bids of the loosing participants remain confidential.
+
+Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand. Also the block finality which in  
 
 
 Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
@@ -106,22 +105,32 @@ Creare l'infrastruttura per mettere in comunicazione oracolo e i due smart contr
 Capire come farli comunicare in modo sicuro togliendo potere all'oracolo che è il punto più vulnerabile dell'architettura.
 
 
+# Security considerations
 
 
 # Future Works
-We will refer to the user who want to sell an object using the auction smart contract with the name "seller".
-When the seller wants to sell something it must open an auction.
-The users who are willing to buy that object are referred to as "bidders" or "participants" and must send a bid to the smart contract according to the smart contract rules.
+## A more secure Bridge between Algorand and Ethereum
 
-## Features:
-We present a smart contract which allows the blockchain users to create and customize an auction.
-We already have created two smart contracts that allow the seller to:
+We want to implement a mechanism that allows a user to sell an asset which lives on the Ethereum blockchain opening an auction on the blockchain of Algorand. Every actor must own an address both in the Algorand and in the Ethereum blockchain. The change of property of the asset happens in the Ethereum blockchain and the payment is performed in Algo in the Algorand blockchain.
 
-1. require the bids to be public and accessible to anyone as soon as they are sent to the smart contract;
-2. require the bids to be committed to in a way that once the bidding process ends, the bidders open their commitment and the winner is revealed.
+The workflow adopted in our project up to now is not very secure since the oracle is in full control of the exchange of communication between the two smart contracts. In order to reduce the power we give to the oracle, we could implement an atomic swap between the two blockchain. As you will see below, the oracle still moves information from a blockchain to the other, however, if the oracle stops working at a certain point, the asset will be returned to the seller and the payment in Algos will not be performed.
+
+We recall that the entities involved are the two smart contracts, one implemented on Algorand **SC<sub>A </sub>** and one on Ethereum **SC<sub>E</sub>**,  and the oracle **O** described in section **Solution**. 
+
+The workflow is the following:
+
+- the seller **S** sends a transaction to the smart contract **SC<sub>E</sub>** offering it for sale;
+- the smart contract registers the transaction: the sale is identified by the transaction id `tr_id` and the seller address `add_s`;
+- the oracle **O** detects the opening of a new sale and send a transaction to **SC<sub>A</sub>** instructing the opening of a new auction associated to `tr_id`;
+- all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret `h_p(s_p)` which will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain;
+- the smart contract **SC<sub>A</sub>** eventually closes the bidding phase and announces the winner;
+- the oracle **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w)` of the winner `w`.
+- the winner `w` discloses its secret `s_w` (which is bounded to its Ethereum public key via the function `h_w` that it previously used) and becomes the owner of the asset.
+- the seller uses the secret  `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain.
 
 
-As future works we include the following features.
+## Other future works
+As future works it would be interesting to implement auction smart contracts that allow the seller to choose an auction model choosing among the following features: 
 
 ### Auction participants
 
@@ -143,24 +152,7 @@ We have implemented a mechanism which manages the ties which is: among the peopl
 To fix this problem one could use the the random beacon [L3] used in the Algorand consensus protocol [4] and sign it using its own secret key. If every participant `p` signs  the same random value `r` computing `sig_p=sign(r,sk_p)` it is possible to randomly select the winner of the auction in case of ties choosing as winner the participant `w` such that `sig_w < sig_p` for each participant `p` who is involved in the tie. This 
 
 
-## A more secure Bridge between Algorand and Ethereum
 
-We want to implement a mechanism that allows a user to sell an asset which lives on the Ethereum blockchain opening an auction on the blockchain of Algorand. Every actor must own an address both in the Algorand and in the Ethereum blockchain. The change of property of the asset happens in the Ethereum blockchain and the payment is performed in Algo in the Algorand blockchain.
-
-The workflow adopted in our project up to now is not very secure since the oracle is in full control of the exchange of communication between the two smart contracts. In order to reduce the power we give to the oracle, we could implement an atomic swap between the two blockchain. As you will see below, the oracle still moves information from a blockchain to the other, however, if the oracle stops working at a certain point, the asset will be returned to the seller and the payment in Algos will not be performed.
-
-We recall that the entities involved are the two smart contracts, one implemented on Algorand **SC<sub>A </sub>** and one on Ethereum **SC<sub>E</sub>**,  and the oracle **O** described in section **Solution**. 
-
-The workflow is the following:
-
-- the seller **S** sends a transaction to the smart contract **SC<sub>E</sub>** offering it for sale;
-- the smart contract registers the transaction: the sale is identified by the transaction id `tr_id` and the seller address `add_s`;
-- the oracle **O** detects the opening of a new sale and send a transaction to **SC<sub>A</sub>** instructing the opening of a new auction associated to `tr_id`;
-- all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret `h_p(s_p)` which will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain;
-- the smart contract **SC<sub>A</sub>** eventually closes the bidding phase and announces the winner;
-- the oracle **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w)` of the winner `w`.
-- the winner `w` discloses its secret `s_w` (which is bounded to its Ethereum public key via the function `h_w` that it previously used) and becomes the owner of the asset.
-- the seller uses the secret  `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain.
 
 
 
@@ -181,7 +173,7 @@ The workflow is the following:
 
 [L3] https://developer.algorand.org/articles/randomness-on-algorand/
 
-
+[L4]
 
 
 
