@@ -94,12 +94,12 @@ In literature there exist multiple kind of auction: for example in [3] the autho
 
 
 
-Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand. Also the block finality which in Algorand is immediate, in Ethereum may take tens of seconds. 
+Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand (see the table below to compare the prices of runs of smart contract implemented in [L1]). Also the block finality which in Algorand is immediate, in Ethereum may take tens of seconds. 
 
 
 ![table Megavero](https://user-images.githubusercontent.com/76473749/196223807-cad28190-6cca-49d4-8be9-e428ef89aee8.PNG)
 
-Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
+For these reson, in some cases, if one have to sell an asset living in Ethereum it might be useful to have the possibility to open an auction on another platform, for instance, Algorand.  
 
 # Technical Challenges
 Beyond the state of the art
