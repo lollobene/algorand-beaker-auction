@@ -4,7 +4,7 @@ from pyteal import *
 #import os
 #import json
 
-MIN_FEE = Int(1000)                                          # minimum fee on Algorand is currently 1000 microAlgos
+MIN_FEE = Int(1000)                                         # minimum fee on Algorand is currently 1000 microAlgos
 
 
 class Auction(Application):
@@ -15,6 +15,10 @@ class Auction(Application):
 
     # Declare Application state, marking `Final` here so the python class var doesn't get changed
     # Marking a var `Final` does _not_ change anything at the AVM level
+
+    ##############
+    # Global State
+    ##############
 
     # Global Bytes (2)
     owner: Final[ApplicationStateValue] = ApplicationStateValue(
@@ -90,8 +94,8 @@ class Auction(Application):
                     payment.type_enum() == TxnType.Payment,
                     payment.sender() == Txn.sender(),
                     payment.receiver() == Global.current_application_address(),
-                    #payment.close_remainder_to() == Global.zero_address(),                     # SERVE?        <<<---
-                    #payment.rekey_to: Global.zero_address()                                    # SERVE?        <<<---
+                    #payment.close_remainder_to() == Global.zero_address(),                     <<<---
+                    #payment.rekey_to: Global.zero_address()                                    <<<---
                 )
             ),
             self.do_opt_in(self.nft_id)

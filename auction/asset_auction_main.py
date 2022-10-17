@@ -54,6 +54,7 @@ def demo():
     tx_params.fee = MIN_FEE                                                 # minimum fee on Algorand is currently 1000 microAlgos
 #    tx_params.min_fee = MIN_FEE
     
+    
     print("\n\n**********************************")
     print("SMART CONTRACT CREATION AND DEPLOYMENT")
     print("**********************************\n")
@@ -123,8 +124,9 @@ def demo():
     try:
         txid = client.send_transaction(signed_txn)
         if txid: print("NFT TRANSFERRED TO SMART CONTRACT")
-    except Exception as err:
-        print(err)
+
+    except LogicException as e:
+        print(f"\n{e}\n")
 
     # for res in result.tx_ids:
     #    print(res)
