@@ -77,13 +77,16 @@ https://github.com/avolabs-io/nft-auction Ethereum flexible auction
 
 E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as "the trusted third party" blockchain platforms that support the creation of smart contracts, such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 
-In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the notarized bidding is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The deposited bidding requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids.
+In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the **notarized bidding** is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The **deposited bidding** requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids. The **committed bidding** auction aims to hide in a first moment the participants bidded amount and to let them reveal it only once the bidding time has expired. The smart contract verifies that the revealed amount corresponds with the committed one.
 
 
 Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
 
 # Technical Challenges
 Beyond the state of the art
+
+Implementare in Beaker che è uno strumento nuovo e poco documentato.
+
 
 # Future Works
 We will refer to the user who want to sell an object using the auction smart contract with the name "seller".
@@ -98,19 +101,25 @@ We already have created two smart contracts that allow the seller to:
 2. require the bids to be committed to in a way that once the bidding process ends, the bidders open their commitment and the winner is revealed.
 
 
-In future we would implement
+As future works we include the following features:
 ### Auction participants
 
-1. the auction is accessible to anyone in the network: there is no control on the accounts that send bids to the smart contract.
-2. only some accounts, selected by the seller, can take part to the auction. The seller **S** sends off-chain to each users **U** (who wants to allow to participate to the auction) the `authorisation data` which consists of: the signature with its secret key of the address `add_u` of the user and the identifier `id` of the auction: `( sk_s, add_u||id , sig(sk_s, add_u||id) )`. 
+1) the auction is accessible to anyone in the network: there is no control on the accounts that send bids to the smart contract.
+2) only some accounts, selected by the seller, can take part to the auction. The seller **S** sends off-chain to each users **U** (who wants to allow to participate to the auction) the `authorisation data` which consists of: the signature with its secret key of the address `add_u` of the user and the identifier `id` of the auction: `( sk_s, add_u||id , sig(sk_s, add_u||id) )`. 
     
-    The user authorised to participate can send a bid to the smart contract giving as input (at least) the amount of money willing to spend (either committed or not) together with the authorisation data received by the seller off-chain. The smart contract will accept its bid only if the signature of the user account concatenated to the auction id verifies using the public key of the seller.
+The user authorised to participate can send a bid to the smart contract giving as input (at least) the amount of money willing to spend (either committed or not) together with the authorisation data received by the seller off-chain. The smart contract will accept its bid only if the signature of the user account concatenated to the auction id verifies using the public key of the seller.
  
 
 ### Number of bids
 
 1. every account can make a single bid during the auction process;
-2. every account can make a number of bids equal to the number of auction token in their possess.
+2. every account can make a number of bids equal to the number of auction token in their possess. This mechanism is inspired by the sortition mechanism used in Algorand consensus protocol. The more token one user is in possess of, the higher is the number of commitments that it can send to the smart contract. When the 
+
+
+### Management of ties
+We have implemented a mechanism which manages the ties which is: among the people who mead the highest bid, in case of ties the one which wins the auction is the first who revealed the commitment (according to the opening transaction list included in the Algorand blocks). Even if this approach is coherent with the smart contract that accepts only public bids, this mechanism incentivise the participants to pay an higher fee to the network in order to have their opening transaction included in a block as soon as possible. 
+
+To fix this problem one could use the the random beacon used in the Algorand consensus protocol and sign it using its own secret key. If every participant `p` signs  the same random value `r` computing `sig_p=sign(r,sk_p)` it is possible to randomly select the winner of the auction in case of ties choosing as winner the participant `w` such that `sig_w<sig_p` for each participant `p` who is involved in the tie. This 
 
 
 ## Bridge between Algorand and Ethereum
