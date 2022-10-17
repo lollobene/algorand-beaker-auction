@@ -100,7 +100,8 @@ def demo():
             starting_price = 1*consts.algo,
             nft = nft,
             start_offset = offset,
-            duration = length
+            duration = length,
+            note= "START_AUCTION".encode()
         )
 
     except LogicException as e:
@@ -255,13 +256,14 @@ def demo():
     # Check if the winning account hold the asset, otherwise opt-in
     optInToAsset(client, addr3, sk3, nft)
 
-    time.sleep(70)
+    time.sleep(10)
 
     try:
         result = app_client.call(
             Auction.end_auction,
             highest_bidder = addr3,
-            nft = nft
+            nft = nft,
+            note="END_AUCTION".encode()
         )
 
     except LogicException as e:

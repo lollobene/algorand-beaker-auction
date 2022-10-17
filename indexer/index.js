@@ -1,8 +1,8 @@
-const txnLoader = require("./src/algo/txnLoader");
+const { fetchTxns } = require("./src/algo/txnLoader");
 
 async function main() {
   try {
-    const txns = await txnLoader();
+    const tx = fetchTxns();
   } catch (error) {
     console.error(error);
   }
