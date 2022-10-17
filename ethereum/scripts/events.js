@@ -20,10 +20,12 @@ function readBlockNumber() {
 
 function writeBlockNumber() {
   try {
-    fs.writeFileSync(
-      "blocknumber.json",
-      JSON.stringify({ lastBlock: lastBlock })
-    );
+    if (lastBlock) {
+      fs.writeFileSync(
+        "blocknumber.json",
+        JSON.stringify({ lastBlock: lastBlock })
+      );
+    }
     // file written successfully
   } catch (err) {
     console.error(err);
@@ -85,11 +87,13 @@ async function fetchEvents(checkedBlock) {
       console.log(checkedBlock);
       log = 10;
     }
-    await sleep(100);
+    await sleep(1000);
   }
 }
 
-fetchEvents(lastBlock);
+function loadEvents() {
+  fetchEvents(lastBlock);
+}
 
 process.on("SIGINT", () => {
   console.log("Caught interrupt signal");
@@ -98,5 +102,5 @@ process.on("SIGINT", () => {
 });
 
 module.exports = {
-  fetchEvents,
+  loadEvents,
 };

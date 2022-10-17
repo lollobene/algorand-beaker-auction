@@ -5,9 +5,14 @@ async function approve(from, to, tokenId) {
 }
 
 async function lockNFT(from, nftAddress, tokenId, releaseTime) {
-  return await NFTLocker.methods
-    .lock(nftAddress, tokenId, releaseTime)
-    .send({ from: from });
+  try {
+    return await NFTLocker.methods
+      .lock(nftAddress, tokenId, releaseTime)
+      .send({ from: from });
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
 }
 
 async function setWinner(from, winnerAddres) {
