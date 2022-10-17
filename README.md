@@ -32,7 +32,7 @@ In order to create the bridge between the Algorand and Ethereum blockchain we ha
 
 3) an oracle implemented in JavaScript **O** which manages the following:
 
-    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A/<sub>**.
+    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
     2. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
 
 # Smart Contract Specifications
@@ -102,6 +102,8 @@ Taking transactions on blockchain may be quite expensive, moreover the costs may
 Beyond the state of the art
 
 Implementare in Beaker che è uno strumento nuovo e poco documentato.
+Creare l'infrastruttura per mettere in comunicazione oracolo e i due smart contract.
+Capire come farli comunicare in modo sicuro togliendo potere all'oracolo che è il punto più vulnerabile dell'architettura.
 
 
 
@@ -138,35 +140,17 @@ The user authorised to participate can send a bid to the smart contract giving a
 ### Management of ties
 We have implemented a mechanism which manages the ties which is: among the people who mead the highest bid, in case of ties the one which wins the auction is the first who revealed the commitment (according to the opening transaction list included in the Algorand blocks). Even if this approach is coherent with the smart contract that accepts only public bids, this mechanism incentivise the participants to pay an higher fee to the network in order to have their opening transaction included in a block as soon as possible. 
 
-To fix this problem one could use the the random beacon used in the Algorand consensus protocol and sign it using its own secret key. If every participant `p` signs  the same random value `r` computing `sig_p=sign(r,sk_p)` it is possible to randomly select the winner of the auction in case of ties choosing as winner the participant `w` such that `sig_w<sig_p` for each participant `p` who is involved in the tie. This 
+To fix this problem one could use the the random beacon [L3] used in the Algorand consensus protocol [4] and sign it using its own secret key. If every participant `p` signs  the same random value `r` computing `sig_p=sign(r,sk_p)` it is possible to randomly select the winner of the auction in case of ties choosing as winner the participant `w` such that `sig_w < sig_p` for each participant `p` who is involved in the tie. This 
 
 
 ## A more secure Bridge between Algorand and Ethereum
 
 We want to implement a mechanism that allows a user to sell an asset which lives on the Ethereum blockchain opening an auction on the blockchain of Algorand. Every actor must own an address both in the Algorand and in the Ethereum blockchain. The change of property of the asset happens in the Ethereum blockchain and the payment is performed in Algo in the Algorand blockchain.
 
-### Components
-We need two smart contracts, one implemented on Algorand **SC<sub>A </sub>** and one on Ethereum **SC<sub>E</sub>**. We need an oracle **O**
+The workflow adopted in our project up to now is not very secure since the oracle is in full control of the exchange of communication between the two smart contracts. In order to reduce the power we give to the oracle, we could implement an atomic swap between the two blockchain. As you will see below, the oracle still moves information from a blockchain to the other, however, if the oracle stops working at a certain point, the asset will be returned to the seller and the payment in Algos will not be performed.
 
-**SC<sub>E</sub>** manages:
+We recall that the entities involved are the two smart contracts, one implemented on Algorand **SC<sub>A </sub>** and one on Ethereum **SC<sub>E</sub>**,  and the oracle **O** described in section **Solution**. 
 
-1. the request of opening of a new auction from an account to sell an asset it owns;
-3. the change of property of the same asset on the Ethereum blockchain assigning the ownership of the asset to the winner of the auction.
-
-
-
-**SC<sub>A</sub>** manages:
-
-1. opens a new auction whenever a new opening is published on smart contract **SC<sub>E</sub>** thanks to the communication of **O**. 
-3. declares the auction winner according to the auction rules and this information is red by **O** who share the information with the Ethereum network
-
-**O** manages:
-
-1. whenever an asset is bounded to **SC<sub>E</sub>**, it triggers the creation of a new auction via **SC<sub>A/<sub>**.
-3. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that (later) will allow the winner to redeem the asset.
-
-
-### Workflow
 The workflow is the following:
 
 - the seller **S** sends a transaction to the smart contract **SC<sub>E</sub>** offering it for sale;
@@ -187,10 +171,13 @@ The workflow is the following:
 
 [3] Mogavero, Francesco, et al. "The Blockchain Quadrilemma: When Also Computational Effectiveness Matters." 2021 IEEE Symposium on Computers and Communications (ISCC). IEEE, 2021.
 
+[4] Chen, Jing, and Silvio Micali. "Algorand: A secure and efficient distributed ledger." Theoretical Computer Science 777 (2019): 155-183.
+
 ## Useful Link
 
 [L1] https://gitlab.com/quadrilemma/quadrilemma
 [L2] https://www.auctionity.com/
+[L3] https://developer.algorand.org/articles/randomness-on-algorand/
 
 
 
