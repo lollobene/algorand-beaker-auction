@@ -75,9 +75,10 @@ python auction.py
 Posts in the developer portal ...**
 https://github.com/avolabs-io/nft-auction Ethereum flexible auction
 
-E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as **the trusted third party** blockchain platforms that support the creation of smart contracts such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
+E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as "the trusted third party" blockchain platforms that support the creation of smart contracts, such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 
-Esistono molti tipi di auction.... CONTINUA DA QUI............................
+In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the notarized bidding is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The deposited bidding requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids.
+
 
 Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
 
@@ -161,3 +162,7 @@ The workflow is the following:
 [2] Omar, Ilhaam A., et al. "Implementing decentralized auctions using blockchain smart contracts." Technological Forecasting and Social Change 168 (2021): 120786.
 
 [3] Mogavero, Francesco, et al. "The Blockchain Quadrilemma: When Also Computational Effectiveness Matters." 2021 IEEE Symposium on Computers and Communications (ISCC). IEEE, 2021.
+
+## Useful Link
+
+[L1] https://gitlab.com/quadrilemma/quadrilemma
