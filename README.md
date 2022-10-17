@@ -15,7 +15,7 @@ Below we present our solution to the following problems:
 ## Solution 
 Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with committed bids.
 
-Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we have designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
 In order to create the bridge between the Algorand and Ethereum blockchain we have implemented the following programs:
 
 1) a smart contract implemented in Solidity **SC<sub>E</sub>** which lives in Ethereum and manages:
@@ -30,18 +30,23 @@ In order to create the bridge between the Algorand and Ethereum blockchain we ha
     2. the declaration the auction winner according to the auction rules.
 
 
-3) an oracle implemented in JavaScript **O** which manages the following:
 
-    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
-    2. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
-    3. 
+
+We designed an oracle **O** which manages the following:
+
+1) whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
+2) when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
+ 
+**The oracle is still in the development for future release.**
+
 
 # Smart Contract Specifications
 **Requirements, Use cases, Functions ...
 **
 
 ## Use cases
-We present two smart contracts implemented in Beaker which allow the creation of a 
+We present two smart contracts implemented in Beaker which allow the creation of an auction 
+
 ## Development Environment
 
 ### Install Sandbox
@@ -102,11 +107,8 @@ Not every blockchain platform can support the implementation of the auction mode
 Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
 
 # Technical Challenges
-Beyond the state of the art
 
-Implementare in Beaker che è uno strumento nuovo e poco documentato.
-Creare l'infrastruttura per mettere in comunicazione oracolo e i due smart contract.
-Capire come farli comunicare in modo sicuro togliendo potere all'oracolo che è il punto più vulnerabile dell'architettura.
+Developing in Beaker was very difficult given the little documentation available and few existing examples. In addition, the SDK for Javascript is still very cumbersome, this in fact precluded the possibility of making the oracle capable of communicating simultaneously with the Ethereum and Algorand blockchains.
 
 
 # Security considerations
