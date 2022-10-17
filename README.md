@@ -3,21 +3,37 @@
 
 2)
 # G1
-# E-auction Smart Contract (implemented in Beaker)
+# E-auction Smart Contract in Algorand (implemented in Beaker) which communicates with Ethereum  
 ## Problem
 We want to implement a decentralised auction service in order to avoid that the seller and the auction participants must trust a centralised auctioneer that can deviate from the auction rules.
 A reasonable solution to this trust problem consists into implementing a smart contract which resides on a public blockchain platform. The blockchain, and in particular the smart contract, impersonates the trusted third party, the auctioneer, therefore choosing the right blockchain platform is a core problem in a solution design. In fact different blockchain platforms have different characteristics (such as block finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different kind of smart contract for auctions. When the assets which are going to be sold using the auction process lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction consists into using a smart contract which lives in the same blockchain. However, in some cases it would be more profitable for the seller and auction participants to perform an auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
 
 Below we present our solution to the following problems: 
-1) implementing a smart contract in Beaker which manages auctions on the Algorand blockchain 
+1) implementing a smart contract in Beaker which manages auctions on the Algorand blockchain;
 2) design the necessary infrastructure to sell assets which live on Ethereum using the same Algorand smart contract. 
 
 ## Solution 
-Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with blinded bids via the use of commitments.
+Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with committed bids.
 
-Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we implemented an architecture which puts into communication the Algorand and Ethereum blockchains. In particular we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc, otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we implemented an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+In order to create the bridge between the Algorand and Ethereum blockchain we have implemented the following programs:
 
--- copia la descrizione da future works se ce la si fa... --
+1) a smart contract implemented in Solidity **SC<sub>E</sub>** which lives in Ethereum and manages:
+
+    1. the request of opening of a new auction from an account to sell an asset it owns;
+    2. the change of property of the same asset on the Ethereum blockchain assigning the ownership of the asset to the winner of the auction.
+
+
+2) a smart contract implemented in Beaker **SC<sub>A</sub>** which lives in Algorand and manages:
+
+    1. the execution of the auction whenever a new asset is published and locked in the smart contract **SC<sub>E</sub>** thanks to the communication of **O**. 
+    2. the declaration the auction winner according to the auction rules.
+
+
+3) an oracle implemented in JavaScript **O** which manages the following:
+
+    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A/<sub>**.
+    2. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
 
 # Smart Contract Specifications
 **Requirements, Use cases, Functions ...
@@ -88,6 +104,8 @@ Beyond the state of the art
 Implementare in Beaker che è uno strumento nuovo e poco documentato.
 
 
+
+
 # Future Works
 We will refer to the user who want to sell an object using the auction smart contract with the name "seller".
 When the seller wants to sell something it must open an auction.
@@ -123,7 +141,7 @@ We have implemented a mechanism which manages the ties which is: among the peopl
 To fix this problem one could use the the random beacon used in the Algorand consensus protocol and sign it using its own secret key. If every participant `p` signs  the same random value `r` computing `sig_p=sign(r,sk_p)` it is possible to randomly select the winner of the auction in case of ties choosing as winner the participant `w` such that `sig_w<sig_p` for each participant `p` who is involved in the tie. This 
 
 
-## Bridge between Algorand and Ethereum
+## A more secure Bridge between Algorand and Ethereum
 
 We want to implement a mechanism that allows a user to sell an asset which lives on the Ethereum blockchain opening an auction on the blockchain of Algorand. Every actor must own an address both in the Algorand and in the Ethereum blockchain. The change of property of the asset happens in the Ethereum blockchain and the payment is performed in Algo in the Algorand blockchain.
 
@@ -162,10 +180,6 @@ The workflow is the following:
 
 
 
-
-
-
-
 ## Bibliography
 [1] Chen, Yi-Hui, Shih-Hsin Chen, and Iuon-Chang Lin. "Blockchain based smart contract for bidding system." 2018 IEEE International Conference on Applied System Invention (ICASI). IEEE, 2018.
 
@@ -176,3 +190,15 @@ The workflow is the following:
 ## Useful Link
 
 [L1] https://gitlab.com/quadrilemma/quadrilemma
+[L2] https://www.auctionity.com/
+
+
+
+
+
+
+
+
+
+
+
