@@ -1,7 +1,3 @@
-# To be included in the discussion
-1) Algorand guarantees instant finalization so the oracle can share the information straight away. Ethereum does not have this property.. Think about it..
-
-2)
 # G1
 # E-auction Smart Contract in Algorand (implemented in Beaker) which communicates with Ethereum  
 ## Problem
@@ -15,7 +11,7 @@ Below we present our solution to the following problems:
 ## Solution 
 Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with committed bids.
 
-Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we have designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
 In order to create the bridge between the Algorand and Ethereum blockchain we have implemented the following programs:
 
 1) a smart contract implemented in Solidity **SC<sub>E</sub>** which lives in Ethereum and manages:
@@ -30,23 +26,18 @@ In order to create the bridge between the Algorand and Ethereum blockchain we ha
     2. the declaration the auction winner according to the auction rules.
 
 
+3) an oracle implemented in JavaScript **O** which manages the following:
 
-
-We designed an oracle **O** which manages the following:
-
-1) whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
-2) when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
- 
-**The oracle is still in the development for future release.**
-
+    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
+    2. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
+    3. 
 
 # Smart Contract Specifications
 **Requirements, Use cases, Functions ...
 **
 
 ## Use cases
-We present two smart contracts implemented in Beaker which allow the creation of an auction 
-
+We present two smart contracts implemented in Beaker which allow the creation of a 
 ## Development Environment
 
 ### Install Sandbox
@@ -101,14 +92,21 @@ E-commerce activities has become part of everyone daily life, as a consequence o
 
 In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the **notarized bidding** is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The **deposited bidding** requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids. The **committed bidding** auction aims to hide in a first moment the participants bidded amount and to let them reveal it only once the bidding time has expired. The smart contract verifies that the revealed amount corresponds with the committed one and assigns the ownership of the asset to the participant who committed to and opened the highest bid. Finally **confidential bidding** allows the participants to encrypt their bids using the public key of the auctioneer so that at the end of the auction the bids of the loosing participants remain confidential.
 
-Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand. Also the block finality which in Algorand is immediate, in Ethereum 
 
+
+Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand. Also the block finality which in Algorand is immediate, in Ethereum may take tens of seconds. 
+
+
+![table Megavero](https://user-images.githubusercontent.com/76473749/196223807-cad28190-6cca-49d4-8be9-e428ef89aee8.PNG)
 
 Taking transactions on blockchain may be quite expensive, moreover the costs may vary through the time according to the price of the native criptocurrencies of the blockchain platforms. Not only the price required to launch an auction can vary through time, but also it is different according to the platform that implements the auction smart contract:
 
 # Technical Challenges
+Beyond the state of the art
 
-Developing in Beaker was very difficult given the little documentation available and few existing examples. In addition, the SDK for Javascript is still very cumbersome, this in fact precluded the possibility of making the oracle capable of communicating simultaneously with the Ethereum and Algorand blockchains.
+Implementare in Beaker che è uno strumento nuovo e poco documentato.
+Creare l'infrastruttura per mettere in comunicazione oracolo e i due smart contract.
+Capire come farli comunicare in modo sicuro togliendo potere all'oracolo che è il punto più vulnerabile dell'architettura.
 
 
 # Security considerations
