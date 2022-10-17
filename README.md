@@ -101,7 +101,8 @@ We already have created two smart contracts that allow the seller to:
 2. require the bids to be committed to in a way that once the bidding process ends, the bidders open their commitment and the winner is revealed.
 
 
-As future works we include the following features:
+As future works we include the following features.
+
 ### Auction participants
 
 1) the auction is accessible to anyone in the network: there is no control on the accounts that send bids to the smart contract.
