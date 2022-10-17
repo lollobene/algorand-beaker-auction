@@ -34,12 +34,7 @@ We designed an oracle **O** which manages the following:
 **The oracle is still in the development for future release.**
 
 # Smart Contract Specifications
-**Requirements, Use cases, Functions ...
-**
-
-## Use cases
-We present two smart contracts implemented in Beaker which allow the creation of a 
-## Development Environment
+The source code is well commented.
 
 ### Install Sandbox
 
