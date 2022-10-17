@@ -26,11 +26,12 @@ In order to create the bridge between the Algorand and Ethereum blockchain we ha
     2. the declaration the auction winner according to the auction rules.
 
 
-3) an oracle implemented in JavaScript **O** which manages the following:
+We designed an oracle **O** which manages the following:
 
-    1. whenever an asset is locked into **SC<sub>E</sub>**, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
-    2. when the auction has a winner, it triggers the creation of a transaction to **SC<sub>E</sub>** that will allow the winner to redeem the asset.
-    3. 
+1) whenever an asset is locked into *SC<sub>E</sub>, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
+2) when the auction has a winner, it triggers the creation of a transaction to *SC<sub>E</sub>* that will allow the winner to redeem the asset.
+ 
+**The oracle is still in the development for future release.**
 
 # Smart Contract Specifications
 **Requirements, Use cases, Functions ...
@@ -102,14 +103,7 @@ Not every blockchain platform can support the implementation of the auction mode
 For these reson, in some cases, if one have to sell an asset living in Ethereum it might be useful to have the possibility to open an auction on another platform, for instance, Algorand.  
 
 # Technical Challenges
-Beyond the state of the art
-
-Implementare in Beaker che è uno strumento nuovo e poco documentato.
-Creare l'infrastruttura per mettere in comunicazione oracolo e i due smart contract.
-Capire come farli comunicare in modo sicuro togliendo potere all'oracolo che è il punto più vulnerabile dell'architettura.
-
-
-# Security considerations
+Developing in Beaker was very difficult given the little documentation available and few existing examples [L4],[L5],[L6],[L7],L[8],L[9],L[10]. In addition, the SDK for Javascript is still very cumbersome, this in fact precluded the possibility of making the oracle capable of communicating simultaneously with the Ethereum and Algorand blockchains.
 
 
 # Future Works
@@ -131,6 +125,12 @@ The workflow is the following:
 - the oracle **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w)` of the winner `w`.
 - the winner `w` discloses its secret `s_w` (which is bounded to its Ethereum public key via the function `h_w` that it previously used) and becomes the owner of the asset.
 - the seller uses the secret  `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain.
+
+To hide the secret one can compute the hash of the concatenation of the secret and the user's account on Ethereum. In this way, when the winner of the auction is declared, it can disclose the secret binding it to the Ethereum account. Once the secret is revealed, the funds stored on the Algorand smart contract are moved to the seller. 
+
+
+![workflow](https://user-images.githubusercontent.com/76473749/196230984-5004d471-b300-43af-9aa9-69f5aebb0072.PNG)
+
 
 
 ## Other future works
@@ -177,7 +177,19 @@ To fix this problem one could use the the random beacon [L3] used in the Algoran
 
 [L3] https://developer.algorand.org/articles/randomness-on-algorand/
 
-[L4]
+[L4] https://algorand-devrel.github.io/beaker/html/index.html
+
+[L5] https://py-algorand-sdk.readthedocs.io/en/latest/
+
+[L6] https://github.com/algorand/py-algorand-sdk
+
+[L7] https://github.com/algorand-devrel/beaker/tree/master/examples
+
+[L8] https://github.com/algorand-school/handson-contract
+
+[L9] https://github.com/algorand-devrel/beaker-starter-kit
+
+[L10] https://github.com/algorand-devrel/beaker-auction
 
 
 
