@@ -165,17 +165,17 @@ We recall that the entities involved are the two smart contracts, one implemente
 The **workflow** is the following:
 The protocol which allows the seller of an asset on Ethereum to sell it using an auction on ethereum works as follows:
 1) the oracle **O** start listening the two smart contract on Ethereum and Algorand.
-2) the seller **S** sends a transaction to the smart contract **SC<sub>E</sub>** offering it for sale: the sale is identified by the transaction id `tr_id` and the seller address `add_s`;
+2) the seller **S** sends a transaction to the smart contract **SC<sub>E</sub>** offering it for sale: the sale is identified by the transaction id `tr_id` and the seller address in Algorand `add_s`;
 2.1)**SC<sub>E</sub>** will return the asset to the seller if after time `T>>t_a` a buyer has not redeemed it (where `t_a` is the auction duration time); 
 3) **O** listens the `asset lock` event coming from **SC<sub>E</sub>**;
 5) **O** sends a script to open a new auction associated to `tr_id` on Algorand using **SC<sub>A</sub>**;(a)
 6) anyone in the Algorand network can send a transaction to start the auction created by the Oracle; 
-7)  all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret binded to the Ethereum account `h_p(s_p||account_(p,E))`. This will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain (to perform the atomic swap) and to avoid that, when the winner sends a transaction revealing the secret (see step 11) someone steals it and sends a transaction advertising the same secret. It must be binded to account_(p,E);
-9) the deposited bidding auction ends and the smart contract **SC<sub>A</sub>** specifies the winner, but the payment is blocked untill the seller sends a transaction proving knowledge of the secret `s_w` hidden behind `h_w(s_w||account_(w,E))` which is the secret of the auction winner;
-10) **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w||account_(w,E))` of the winner `w`. (b)
-11) the winner `w` discloses its secret `s_w` using its account account_(w,E) and becomes the owner of the asset.
-12) the auction winner, who controls the Ethereum account recorded by **O** in **SC<sub>E</sub>** can redeem the locked token
-13) once the asset has changed owner, the seller uses the secret `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain sending a transaction to **SC<sub>A</sub>**.
+7)  all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret binded to its Ethereum account `h_p(s_p||account_(p,E))`. This will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain (to perform the atomic swap) and to avoid that, when the winner sends a transaction revealing the secret (see step 10) someone steals it and sends a transaction advertising the same secret. It MUST be binded to account_(p,E) to avoid attacks;
+8) the deposited bidding auction ends and the smart contract **SC<sub>A</sub>** specifies the winner, but the payment is blocked untill the seller sends a transaction proving knowledge of the secret `s_w` hidden behind `h_w(s_w||account_(w,E))` which is the secret of the auction winner;
+9) **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w||account_(w,E))` of the winner `w`; (b)
+10) the winner `w` discloses its secret `s_w` sending a transaction to **SC<sub>E</sub>** using the Ethereum account `account_(w,E)` binded to the secret in the bidding phase and becomes the owner of the asset;
+11) the auction winner, who controls the Ethereum account recorded by **O** in **SC<sub>E</sub>** can redeem the locked token;
+12) once the asset has changed owner, the seller uses the secret `s_w` published by the winner `w` to redeem the transaction in Algo on the Algorand blockchain sending a transaction to **SC<sub>A</sub>** with the Algorand account `add_s`.
 
 
 
