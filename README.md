@@ -2,16 +2,16 @@
 # E-auction Smart Contract in Algorand (implemented in Beaker) which communicates with Ethereum  
 ## Problem
 We want to implement a decentralised auction service in order to avoid that the seller and the auction participants must trust a centralised auctioneer that can deviate from the auction rules.
-A reasonable solution to this trust problem consists into implementing a smart contract which resides on a public blockchain platform. The blockchain, and in particular the smart contract, impersonates the trusted third party, the auctioneer, therefore choosing the right blockchain platform is a core problem in a solution design. In fact different blockchain platforms have different characteristics (such as block finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different kind of smart contract for auctions. When the assets which are going to be sold using the auction process lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction consists into using a smart contract which lives in the same blockchain. However, in some cases it would be more profitable for the seller and auction participants to perform an auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
+A reasonable solution to this trust problem consists into implementing a smart contract which resides on a public blockchain platform. The blockchain, and in particular the smart contract, impersonates the trusted third party, the auctioneer, therefore choosing the right blockchain platform is a core problem in a solution design. In fact different blockchain platforms have different characteristics (such as block finality, cryptographic agility, security or the costs in terms of fees) and allow the implementation of different kind of smart contract for auctions. When the asset which is put up for auction lives inside a blockchain (for example a token controlled by a smart contract in Algorand or Ethereum), the easiest solution to arrange the auction consists into using a smart contract which lives in the same blockchain. However, in some cases, it would be more profitable for the seller and auction participants to perform an auction on a different blockchain with different characteristics making them interoperate accordingly with the users needs.
 
 Below we present our solution to the following problems: 
-1) implementing a smart contract in Beaker which manages auctions on the Algorand blockchain;
-2) design the necessary infrastructure to sell assets which live on Ethereum using the same Algorand smart contract. 
+1) **implementing** a smart contract in Beaker which manages auctions on the Algorand blockchain;
+2) **design** the necessary infrastructure to sell assets which live on Ethereum using the same Algorand smart contract. 
 
 ## Solution 
-Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids and the other with committed bids.
+Our solution consists into creating two smart contracts in Beaker that allow the users of the Algorand network to perform auctions: one smart contract implements the auction with public bids (also referred to as deposited bidding auction) and the other with committed bids.
 
-Moreover, in order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the smart contract ad hoc (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
+In order to augment the interoperability between blockchains and to allow the users of multiple networks to minimize their operation costs, we designed an architecture which puts into communication the Algorand and Ethereum blockchains. In particular, we allow a user to sell an asset living on Ethereum using an auction that is performed on Algorand. Therefore, the seller of an Ethereum asset can incentivate the participation to the auction process by choosing where to make the auction happen: on Ethereum using one of the  ad hoc smart contracts (for example provided by Auctionity [L2]), otherwise they can use the architecture we present in our project making it happen on the Algorand blockchain.
 In order to create the bridge between the Algorand and Ethereum blockchain we have implemented the following programs:
 
 1) a smart contract implemented in Solidity **SC<sub>E</sub>** which lives in Ethereum and manages:
@@ -22,16 +22,16 @@ In order to create the bridge between the Algorand and Ethereum blockchain we ha
 
 2) a smart contract implemented in Beaker **SC<sub>A</sub>** which lives in Algorand and manages:
 
-    1. the execution of the auction whenever a new asset is published and locked in the smart contract **SC<sub>E</sub>** thanks to the communication of **O**. 
+    1. the execution of the auction whenever a new asset is published and locked in the smart contract **SC<sub>E</sub>**. 
     2. the declaration the auction winner according to the auction rules.
 
 
-We designed an oracle **O** which manages the following:
+We designed an oracle **O** which allows the communication between **SC<sub>E</sub>** and **SC<sub>A</sub>** and manages the following steps:
 
 1) whenever an asset is locked into *SC<sub>E</sub>, **O** triggers the creation of a new auction via **SC<sub>A</sub>**.
 2) when the auction has a winner, it triggers the creation of a transaction to *SC<sub>E</sub>* that will allow the winner to redeem the asset.
  
-**The oracle is still in the development for future release.**
+**The oracle is still in the development in JavaScript for future release.**
 
 # Smart Contract Specifications
 The source code is well commented.
@@ -84,23 +84,23 @@ python auction.py
 
 # State of the Art
 
-E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as "the trusted third party" blockchain platforms that support the creation of smart contracts, such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
+E-commerce activities has become part of everyone daily life, as a consequence of the popularity of the Internet. One of the most used e-commerce activities are e-auctions, where the auction participants can send their bid to buy a product over the Internet [2]. 
 
-In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the **notarized bidding** is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The **deposited bidding** requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids. The **committed bidding** auction aims to hide in a first moment the participants bidded amount and to let them reveal it only once the bidding time has expired. The smart contract verifies that the revealed amount corresponds with the committed one and assigns the ownership of the asset to the participant who committed to and opened the highest bid. Finally **confidential bidding** allows the participants to encrypt their bids using the public key of the auctioneer so that at the end of the auction the bids of the loosing participants remain confidential.
+Centralised e-auction systems require the auction participants and the seller of the asset to trust the auction manager [3]. The e-auction managers may be dishonest and circumvent the auction rules in order to favour or penalise some auction participants. A solution to this trust problem, (which is: requiring the participants to trust a possibly dishonest third party), consists into considering as "the trusted third party" blockchain platforms that support the creation of smart contracts, such as Ethereum or Algorand. In this way the trust do not resides on a centralised third party but on the network of a public blockchain.
 
+In literature there exist multiple kind of auction: for example in [3] the authors classify the auction models in the following macro-cathegories according to how the bidding process takes place: notarized bidding, deposited bidding, committed bidding and confidential bidding. Basically, the **notarized bidding** is the most simple and insecure auction model and only requires the contract to record the participant bids on the blockchain. The **deposited bidding** requires the participants to send to the smart contract the amount of native cryptocurrency that one is willing to bid in a completely transparent fashion so that everyone can see in real time each other bids. The **committed bidding** auction aims to hide in a first moment the participants bidded amount and to let them reveal it only once the bidding time has expired. The smart contract verifies that the revealed amount corresponds with the committed one and assigns the ownership of the asset to the participant who committed to and opened the highest bid. Finally **confidential bidding** allows the participants to encrypt their bids using the public key of the auctioneer so that at the end of the auction the bids of the loosing participants remain confidential. 
 
-
-Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms. For example Bitcoin with Bitcoin Script only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive than Algorand (see the table below to compare the prices of runs of smart contract implemented in [L1]). Also the block finality which in Algorand is immediate, in Ethereum may take tens of seconds. 
+Not every blockchain platform can support the implementation of the auction models described above: the reason behind it resides in the capabilities of the scripting language adopted by the blockchain platforms which may not allow the implementation of some security requirements [1]. For example Bitcoin, with Bitcoin Script, only allows the notarized bidding, Algorand, with Teal, allows the notarized bidding, the deposited bidding and the committed bidding, whereas in Ethereum it is possible to implement all of them [3]. However, due to the differences in the consensus protocol, transaction throughput, and costs in terms of fees, it might be more convenient to perform an aucton on a given platform rather than another. For example, Ethereum allows the implementation of more privacy preserving smart contracts thank to the supported cryptographic functions but it is extremely more expensive in terms of fees than Algorand. In the table below (taken from [3]) one can compare the estimations of the transaction fees considering 80 bytes as token metadata and 10 bidders submitting 1 bid each on different blockchain platforms and with different auction models. The implementations of the smart contracts used to collect the data come from [L1] and the prices in Euro refers to the period February 2020-Genuary 2021.  
 
 
 ![table Megavero](https://user-images.githubusercontent.com/76473749/196223807-cad28190-6cca-49d4-8be9-e428ef89aee8.PNG)
 
-For these reson, in some cases, if one have to sell an asset living in Ethereum it might be useful to have the possibility to open an auction on another platform, for instance, Algorand.  
+Another aspect that is relevant when one have to choose the platform to rely on is block finality: in Algorand, which is a based on a BFT consensus protocol, it is immediate, in Ethereum may take tens of seconds. For these reson, in some cases, if one have to sell an asset living in Ethereum it might be useful to have the possibility to open an auction on another platform, for instance, on Algorand.  
 
 # Technical Challenges
 Developing in Beaker was very difficult given the little documentation available and few existing examples [L4],[L5],[L6],[L7],L[8],L[9],L[10]. In addition, the SDK for Javascript is still very cumbersome, this in fact precluded the possibility of making the oracle capable of communicating simultaneously with the Ethereum and Algorand blockchains.
 
-
+Another 
 # Future Works
 ## A more secure Bridge between Algorand and Ethereum
 
