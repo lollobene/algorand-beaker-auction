@@ -16,7 +16,7 @@ function createAccount() {
   }
 }
 
-function loadAccountsMnemonic() {
+function loadAccountsFromMnemonic() {
   const governorMnemonic = process.env.GOVERNOR_MNEMONIC_PHRASE;
   const bidder1Mnemonic = process.env.BIDDER1_MNEMONIC_PHRASE;
   const bidder2Mnemonic = process.env.BIDDER2_MNEMONIC_PHRASE;
@@ -34,4 +34,4 @@ async function getAccountBalance(address, client) {
   return accountInfo.amount;
 }
 
-module.exports = { createAccount, loadAccountsMnemonic, getAccountBalance };
+module.exports = { createAccount, loadAccountsFromMnemonic, getAccountBalance };

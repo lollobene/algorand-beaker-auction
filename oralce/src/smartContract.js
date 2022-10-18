@@ -22,8 +22,25 @@ async function compileTealPrograms(approval, clear) {
   return { approvalProgram, clearProgram };
 }
 
+function getMethodByName(contract, name) {
+  const m = contract.methods.find((mt) => {
+    return mt.name == name;
+  });
+  if (m === undefined) throw Error("Method undefined: " + name);
+  return m;
+}
+
+function getContractABI(jsonABI) {
+  return new algosdk.ABIContract(JSON.parse(jsonABI.toString()));
+}
+
 function getAppAddress(appId) {
   return getApplicationAddress(appId);
 }
 
-module.exports = { compileTealPrograms, getAppAddress };
+module.exports = {
+  compileTealPrograms,
+  getMethodByName,
+  getContractABI,
+  getAppAddress,
+};

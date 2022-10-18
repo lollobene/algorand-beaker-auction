@@ -1,6 +1,10 @@
 const fs = require("fs");
 const { web3, NFTLocker } = require("./web3");
 const { sleep } = require("./utils");
+const {
+  createAuction,
+  startAuction,
+} = require("../../oralce/src/createAndStartAuction");
 
 const locked = {};
 
@@ -50,6 +54,8 @@ async function processEvents(events) {
           token = data.token;
           tokenId = data.tokenId;
           console.log("LOCKED: ", tokenId, token);
+          await createAuction();
+          await startAuction();
           break;
         case "TokenUnlocked":
           token = data.token;

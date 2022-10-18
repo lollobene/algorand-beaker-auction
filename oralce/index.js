@@ -1,8 +1,9 @@
 const { lock, approve } = require("../ethereum/scripts/index");
 const { loadEvents } = require("../ethereum/scripts/events");
 const { fetchTxns } = require("../indexer/src/algo/txnLoader");
+const { createAuction, startAuction } = require("./src/createAndStartAuction");
 
-let tokenId = 2;
+let tokenId = 3;
 
 async function main() {
   // ORACOLO:parte script ascolto su ethereum
