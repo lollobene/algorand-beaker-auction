@@ -148,7 +148,7 @@ For these reson, in some cases, if one have to sell an asset living in Ethereum 
 # Technical Challenges and Security considerations on the Bridge 
 Developing in Beaker was very difficult given the little documentation [L4],[L7],L[9],L[10] available and few existing examples [L5],[L6],[L10]. In addition, the SDK for Javascript is still very cumbersome, this in fact precluded the possibility of making the oracle capable of communicating simultaneously with the Ethereum and Algorand blockchains.
 
-Another challenge has been designing a protocol (described in the future work section) which creates a bridge between Algorand and Ethereum. 
+Another challenge has been designing a protocol (described in the future work section) which creates a bridge between Algorand and Ethereum. The bridge is made possible by the introduction of an Oracle which moves information from the "outside world" to the two blockchains. Note that Algorand is part of the Ethereum's outside world and viceversa. However, since the oracle is the weakest component of our protocol we have tried to remove as much power as possible from its hands. In particular, our commitment has been put in designing the protocol in such a way that an Oracle fault would not allow payment without the asset being sold, or that the sale of the asset would take place without payment being made in Algo.
 # Future Works
 ## A more secure Bridge between Algorand and Ethereum
 
@@ -166,8 +166,8 @@ The protocol which allows the seller of an asset on Ethereum to sell it using an
 3) **O** listens the `asset lock` event coming from **SC<sub>E</sub>**;
 5) **O** sends a script to open a new auction associated to `tr_id` on Algorand using **SC<sub>A</sub>**;(a)
 6) anyone in the Algorand network can send a transaction to start the auction created by the Oracle; 
-7)  all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret binded to the Ethereum account `h_p(s_p||account_(p,E))`. This will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain (to perform the atomic swap) and to avoid that, when the winner sends a transaction revealing the secret someone steals it and sends a transaction advertising the same secret. It must be binded to account_(p,E);
-9) the deposited bidding auction ends and the smart contract **SC<sub>A</sub>** specifies the winner but the payment is blocked untill the seller sends a transaction proving knowledge of the secret `s_w` hidden behind `h_w(s_w||account_(w,E))` which is the secret of the auction winner;
+7)  all the auction participants can send their bids to the smart contract **SC<sub>A</sub>**: in the bidding process, each participant `p` will include an hidden secret binded to the Ethereum account `h_p(s_p||account_(p,E))`. This will be used to bind the accounts possessed by each participant on the Algorand and Ethereum blockchain (to perform the atomic swap) and to avoid that, when the winner sends a transaction revealing the secret (see step 11) someone steals it and sends a transaction advertising the same secret. It must be binded to account_(p,E);
+9) the deposited bidding auction ends and the smart contract **SC<sub>A</sub>** specifies the winner, but the payment is blocked untill the seller sends a transaction proving knowledge of the secret `s_w` hidden behind `h_w(s_w||account_(w,E))` which is the secret of the auction winner;
 10) **O** detects the end of the auction phase and sends a transaction to **SC<sub>E</sub>** containing a reference to the hidden secret `h_w(s_w||account_(w,E))` of the winner `w`. (b)
 11) the winner `w` discloses its secret `s_w` using its account account_(w,E) and becomes the owner of the asset.
 12) the auction winner, who controls the Ethereum account recorded by **O** in **SC<sub>E</sub>** can redeem the locked token
