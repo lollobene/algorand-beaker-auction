@@ -86,6 +86,68 @@ asset_auction.py contract functions:
 
 ### Committed auction
 
+Auction Commitment program
+
+This program, developed using the Beaker framework, is intended to setup a commited auction involving two users. Each of them don't see the the bid submitted by the other user. Hence, first a commitment phase is initialized, sending the hashed value of the commitment to the smart contract. Then, a bid phase is triggered to reveal the real amount of the bid. All the logic to check corrispondence between commitment and bid is written inside the smart contract. The prize is a NFT created by the seller, who in this case coincides with the owner of the contract (he/she developed it).
+
+auction_commitment_main.py steps:
+
+- create the accounts derived by sandbox or mnemomics;
+- set the parameters: - offset starting auction
+		      - commitment duration
+		      - auction duration
+		      - deposit (escrow funds to partecipating in the auction)
+		      - client transaction suggested parameters (setting the fee as the minimum fee allowed)
+- invoke the client;
+- deploy the smart contract;
+- fund the smart contract to enable it having enough funds to do inner payments by using the client method `fund` (less fees than calling a transaction);
+- create the asset;
+- transfer the asset to the smart contract by calling the `nft_opt-in` function and then triggering the `AssetTransferTxn` transaction
+- start the auction: - the parameters are assigned (nft id, offset starting auction, commitment duration, auction duration, deposit)
+		     - the starting price has been set up to 1 Algo
+- start commitment: - the real bid (`value` parameter) is set and hashed using the sha256 function
+		    - `value` amount explicitly set for simple and immediate testing purposes
+		    - the parameters are assigned (commitment and the key `k`). Here `k` is used for indexing the local state parameters inside the smart contract. `k=1` has been chosen in order to allow only one commitment by each user
+- start bidding: - one bid per user, following the mapping chosen by setting the key `k=1`
+		 - bid amount explicitly set for simple and immediate testing purposes
+		 - `highest_bidder` explicitly set for simple and immediate testing purposes
+- end auction: - checking the winning address (in this case, explicitly set for simple and immediate testing purposes)
+	       - opt-in the asset for the winning address
+	       - transfer the asset to the winning address
+
+During each different step, some print statements (stored in `util.py` file) have been added for control/test purposes. These are:
+- `print_created_asset(...)`: print the asset data
+- print current app state by invoking the method `get_application_state`
+- print current app address info by invoking the method `get_application_account_info`
+- `print_asset_holding(...)` to check who is holding the asset (this function called also after opting-in the asset to check if the asset_id is among the account fields)
+- `print_balances(...)` to check the balances of all the addresses (app and accounts) step by step
+
+
+auction_commitment_contract.py contract functions:
+
+- declaration of parameters: - 2 global bytes parameters (`owner` and `highest_bidder`), setting default values
+			     - 6 global int parameters (`highest_bid`, `nft_id`, `auction_start`, `commit_end`, `auction_end`, `deposit`), setting default values
+			     - 1 local bytes parameter (`commitment`), with `max_keys=1`
+			     - 1 local int parameter (`open_commitment`), with `max_keys=1` to reflect the same mapping of commitment
+- declaration of administrative actions by using the function `set_owner` with the `authorize = Authorize.only(owner)` label enabled
+- function `create` to initialize the application state
+- function `opt_in` to opting-in the commitment field for the smart contract. In this way, the smart contract is able to write into local state (account) the corrispondent commitment field, setting it properly
+- function `nft_opt_in` to opting-in the asset for the smart contract. Inside it, the function `do_opt_in` is called to trigger consequently the function `do_axfer` to transfer the asset into the smart contract
+- function `setup` to start the auction: - added assert control statements on the time and the asset sent by the owner
+					 - setting the global parameters to the correct values
+- function `commitment` to start the commitment phase: - added assert control statements on the time and the payment amount (deposit, the escrow funds)
+						       - writing to local state (account state) the corrispondent commitment submitted by the bidder by setting `self.commitment[k][payment.sender()].set(commitment.get())`, using the key `k` to index the commitment parameter
+- function `bid` to start the bid phase: - added assert control statements on the time and the payment type/sender
+					 - checking that the bid submitted is equivalent to the commitment submitted in the previous phase
+					 - deleting the old field in the commitment parameter
+					 - setting the bid in the `open_commitment` parameter
+					 - managing the logic, considering the following cases: current bid > previous bid, current bid <= previous bid
+					 - paying back the deposit to the bidder (since the sha decoding has been correctly verified some code lines ahead)
+					 - paying back the previous bidder if the current bid > previous bid (by using an inner transaction)
+- function `end_auction` to close the auction logic: - added assert control statements on the time
+						     - `do_aclose` function to send the asset to the receiver (`asset_close_to` field set to `receiver`) if there are bids, otherwise send it back to the owner
+						     - `pay_owner` to give back the owner all the tokens stored on the contract (initial funds - fees for the inner transactions + bid amount). `close_remainder_to` set to `Global.creator_address()`
+
 ### Install Sandbox
 
 Install the [sandbox](https://github.com/algorand/sandbox) to start a local private node and start it with the `dev` configuration.
@@ -181,13 +243,14 @@ The protocol which allows the seller of an asset on Ethereum to sell it using an
 
 To hide the secret one can compute the hash of the concatenation of the secret and the user's account on Ethereum. In this way, when the winner of the auction is declared, it can disclose the secret binding it to the Ethereum account. Once the secret is revealed, the funds stored on the Algorand smart contract are moved to the seller. 
 
-(a) note that if the oracle do not create the auction the asset will return to the seller
-(b) note that if the oracle do not move the information from Algorand to Ethereum, then the asset will be returned to the seller and the payment will return to the winner of the auction.
+(a) note that if the oracle do not create the auction the asset will return to the seller;
+
+(b) note that if the oracle do not move the information from Algorand to Ethereum, then the asset will be returned to the seller and the payment will return to the winner of the auction. This can be implemented by requiring that if the seller do not send a transaction revealing the secret within a given amount of time, then the funds, which are blocked in the smart contract, return to the winner.
 
 ![workflow](https://user-images.githubusercontent.com/76473749/196230984-5004d471-b300-43af-9aa9-69f5aebb0072.PNG)
 
 
-
+Note that the Oracle comes into play to move data from a blockchain to another only once.
 ## Other future works
 As future works it would be interesting to implement auction smart contracts that allow the seller to choose an auction model choosing among the following features: 
 
