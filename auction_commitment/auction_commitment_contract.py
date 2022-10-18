@@ -5,9 +5,6 @@ from pyteal import *
 #import os
 #import json
 
-MIN_FEE = Int(1000)                                         # minimum fee on Algorand is currently 1000 microAlgos
-
-
 class Auction(Application):
 
     ##############
@@ -109,6 +106,10 @@ class Auction(Application):
     # Opt-in
     ##############
 
+    @update
+    def update(self):
+        return Reject()
+
     @opt_in
     def opt_in(self):                               # opt-in for commitment
         return self.initialize_account_state()
@@ -141,7 +142,7 @@ class Auction(Application):
                     self.commit_end.get() < self.auction_end.get(),
                     asset.type_enum() == TxnType.AssetTransfer,
                     asset.xfer_asset() == self.nft_id.get(),
-#                    asset.asset_amount() == Int(1),
+                    asset.asset_amount() == Int(1),
                     asset.asset_receiver() == Global.current_application_address()
                 )
             )
@@ -153,7 +154,6 @@ class Auction(Application):
     ##############
 
     @external()
-#    def commit(self, k: abi.Uint8, commitment: abi.DynamicBytes, payment: abi.PaymentTransaction, nft: abi.Asset):
     def commit(self, k: abi.Uint8, commitment: abi.DynamicBytes, payment: abi.PaymentTransaction):
         payment = payment.get()
         return Seq(
@@ -176,21 +176,9 @@ class Auction(Application):
     ##############
     
     @external
-#    def bid(self, payment: abi.PaymentTransaction, highest_bidder: abi.Account, old_k: abi.Uint8, new_k: abi.Uint8):
     def bid(self, payment: abi.PaymentTransaction, highest_bidder: abi.Account, k: abi.Uint8):
-#    def bid(self, payment: abi.PaymentTransaction, k: abi.Uint8):
         payment = payment.get()
-#        nft = self.nft_id.get()
-#        on_bid_nft_holding = AssetHolding.balance(
-#            Global.current_application_address(), App.globalGet(nft))
         return Seq(
-#            on_bid_nft_holding,
-#            Assert(And(
-#                # the auction has been set up
-#                on_bid_nft_holding.hasValue(),
-#                on_bid_nft_holding.value() > Int(0),
-#                # the auction has started
-#            )),
             Assert(And(
                 # Checking (current time) >= (commit end) is fundamental. Every user can do just one commit (max_keys = 1)
                 # in the commitment phase. Every other commitment (if submitted) from the same user is going to be overwritten
@@ -202,9 +190,7 @@ class Auction(Application):
                 payment.type_enum() == TxnType.Payment,
                 payment.sender() == Txn.sender(),
                 payment.receiver() == Global.current_application_address(),
-#                Sha256(Itob(payment.amount())) == self.commitment[old_k][payment.sender()]  # verify corrispondence among bid and commit values
                 Sha256(Itob(payment.amount())) == self.commitment[k][payment.sender()]
-#                Sha256(Itob(payment.amount())) == self.commitment[old_k][payment.sender()].get
             ), comment="payment"),
 
             Log(Sha256(Itob(payment.amount()))),
@@ -238,7 +224,7 @@ class Auction(Application):
 
     @external
 #    def end_auction(self, highest_bidder: abi.Account, nft: abi.Asset):
-    def end_auction(self, nft: abi.Asset):
+    def end_auction(self,highest_bidder: abi.Account, nft: abi.Asset):
         auction_end = self.auction_end.get()
         highest_bid = self.highest_bid.get()
         owner = self.owner.get()
@@ -277,9 +263,6 @@ class Auction(Application):
                     TxnField.receiver: receiver,
                     TxnField.amount: amount - Global.min_txn_fee(),
                     TxnField.fee: Int(0),
-#                    TxnField.fee: MIN_FEE,                     #it seems to be a bit more expensive if set
-#                    TxnField.close_remainder_to: Global.zero_address(),                                        # <<<---
-#                    TxnField.rekey_to: Global.zero_address()                                                   # <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -289,17 +272,13 @@ class Auction(Application):
     @internal(TealType.none)
     def pay_owner(self, receiver: Expr, amount: Expr):
         return Seq(
-            InnerTxnBuilder.Begin(),                            #Inner transactions are only available in AVM version 5 or higher   <<<--- CHECK    (source: https://pyteal.readthedocs.io/en/stable/accessing_transaction_field.html)
+            InnerTxnBuilder.Begin(),
             InnerTxnBuilder.SetFields(
                 {
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.receiver: receiver,
                     TxnField.amount: amount,
-#                    TxnField.fee: MIN_FEE,
-                    TxnField.fee: Int(0),
                     TxnField.close_remainder_to: Global.creator_address(),
-#                    TxnField.close_remainder_to: Global.zero_address(),                                        # <<<---
-#                    TxnField.rekey_to: Global.zero_address()                                                   # <<<---
                 }
             ),
             InnerTxnBuilder.Submit()
@@ -315,7 +294,6 @@ class Auction(Application):
                 TxnField.xfer_asset: asset_id,
                 TxnField.asset_amount: amount,
                 TxnField.asset_receiver: receiver,
-                TxnField.fee: MIN_FEE
             }
         )
 
@@ -328,7 +306,6 @@ class Auction(Application):
                 TxnField.type_enum: TxnType.AssetTransfer,
                 TxnField.xfer_asset: asset_id,
                 TxnField.asset_close_to: receiver,
-                TxnField.fee: MIN_FEE
             }
         )
 
@@ -339,36 +316,5 @@ class Auction(Application):
         return self.do_axfer(self.address, asset_id, Int(0))
 
 
-    # Reject updates
-#    @update(TealType.none)
-#    def update_contract(self):
-#        return Reject()
-
-
-
 if __name__ == "__main__":
     Auction().dump("artifacts")
-
-#    if os.path.exists("approval.teal"):
-#        os.remove("approval.teal")
-
-#    if os.path.exists("approval.teal"):
-#        os.remove("clear.teal")
-
-#    if os.path.exists("abi.json"):
-#        os.remove("abi.json")
-
-#    if os.path.exists("app_spec.json"):
-#        os.remove("app_spec.json")
-
-#    with open("approval.teal", "w") as f:
-#        f.write(app.approval_program)
-
-#    with open("clear.teal", "w") as f:
-#        f.write(app.clear_program)
-
-#    with open("abi.json", "w") as f:
-#        f.write(json.dumps(app.contract.dictify(), indent=4))
-
-#    with open("app_spec.json", "w") as f:
-#        f.write(json.dumps(app.application_spec(), indent=4))

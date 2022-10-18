@@ -34,8 +34,8 @@ print("Address Secret key =", sk3)
 
 # Auction settings
 offset = 10                             # start time is 10 seconds in the future
-commitment_length = 90                 # commitment duration
-auction_length = 500                    # auction duration
+commitment_length = 100                 # commitment duration
+auction_length = 180                    # auction duration
 deposit = 1*consts.algo                 # 1 Algo (escrow for participating into the auction)
 
 
@@ -290,7 +290,7 @@ def demo():
     # Check if the winning account hold the asset, otherwise opt-in
     optInToAsset(client, addr3, sk3, nft)
 
-    time.sleep(40)
+    time.sleep(10)
 
     try:
         result = app_client.call(
