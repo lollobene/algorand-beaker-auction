@@ -34,6 +34,7 @@ We designed an oracle **O** which allows the communication between **SC<sub>E</s
 **The oracle is still in under development in JavaScript for future release.**
 
 # Smart Contract Specifications
+### Deposited bidding auction
 
 Asset Auction program
 
@@ -81,6 +82,55 @@ asset_auction.py contract functions:
 						     -`do_aclose` function to send the asset to the receiver (`asset_close_to` field set to`receiver`)
 						     -`pay_owner` to give back the owner all the tokens stored on the contract (initial funds - fees for the inner transactions + bid amount).`close_remainder_to` set to`Global.creator_address()`
 - function`do_opt_in` to opting-in the asset for the smart contract. Inside it, the function`do_axfer` is triggered for transferring the asset to the smart contract
+
+
+### Committed auction
+Asset Auction program
+
+This program, developed using the Beaker framework, is intended to setup a standar auction involving two users. Each of them can see the bids of the other competitor, hence he/she can submit a new bid to start winning the auction. The prize is a NFT created by the seller, who in this case coincides with the owner of the contract (he/she developed it).
+
+asset_auction_main.py steps:
+
+- create the accounts derived by sandbox or mnemomics;
+- set the parameters: - offset starting auction
+		      - auction duration
+		      - client transaction suggested parameters (setting the fee as the minimum fee allowed)
+- invoke the client;
+- deploy the smart contract;
+- create the asset;
+- start the auction: - the owner of the asset (= owner of the contract) send a signed transaction for enabling the smart contract having enough funds to do inner payments;
+		     - the starting price has been set up to 1 Algo
+- transfer the asset to the smart contract by using the `AssetTransferTxn` class
+- start bidding: - two bids per user, trying to compete each other
+		 - bid amount explicitly set for simple and immediate testing purposes
+		 - previous bidder explicitly set for simple and immediate testing purposes
+- end auction: - checking the winning address (in this case, explicitly set for simple and immediate testing purposes)
+	       - opt-in the asset for the winning address
+	       - transfer the asset to the winning address
+
+During each different step, some print statements (stored in `util.py` file) have been added for control/test purposes. These are:
+- `print_created_asset(...)`: print the asset data
+- print current app state by invoking the method `get_application_state`
+- print current app address info by invoking the method `get_application_account_info`
+- `print_asset_holding(...)` to check who is holding the asset (this function called also after opting-in the asset to check if the asset_id is among the account fields)
+- `print_balances(...)` to check the balances of all the addresses (app and accounts) step by step
+
+
+asset_auction.py contract functions:
+
+- declaration of parameters: - 2 global bytes parameters (`owner` and `highest_bidder`), setting default values
+			     - 4 global int parameters (`highest_bid`, `nft_id`, `auction_start`, `auction_end`), setting default values
+- declaration of administrative actions by using the function `set_owner` with the `authorize = Authorize.only(owner)` label enabled
+- function `create` to initialize the application state
+- function `setup` to start the auction: - added assert control statements on the time and the payment sent by the owner to fund the contract
+					 - setting the global parameters to the correct values
+- function `bid` to start the bid phase: - added assert control statements on the time and the payment amount/sender
+					 - setting the parameters according to the bid values received
+					 - paying back the previous bidder if the current bid > previous bid (by using an inner transaction)
+- function `end_auction` to close the auction logic: - added assert control statements on the time
+						     - `do_aclose` function to send the asset to the receiver (`asset_close_to` field set to `receiver`)
+						     - `pay_owner` to give back the owner all the tokens stored on the contract (initial funds - fees for the inner transactions + bid amount). `close_remainder_to` set to `Global.creator_address()`
+- function `do_opt_in` to opting-in the asset for the smart contract. Inside it, the function `do_axfer` is triggered for transferring the asset to the smart contract
 
 ### Install Sandbox
 
