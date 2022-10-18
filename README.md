@@ -40,7 +40,7 @@ Asset Auction program
 
 This program, developed using the Beaker framework, is intended to setup a standar auction involving two users. Each of them can see the bids of the other competitor, hence he/she can submit a new bid to start winning the auction. The prize is a NFT created by the seller, who in this case coincides with the owner of the contract (he/she developed it).
 
-asset_auction_main.py steps:
+asset_auction_main.py steps: 
 
 - create the accounts derived by sandbox or mnemomics;
 - set the parameters: - offset starting auction
